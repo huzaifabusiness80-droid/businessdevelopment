@@ -23,7 +23,8 @@ const Login = ({ onLoginSuccess }) => {
             }
         } catch (err) {
             console.error('Login error:', err);
-            setError('An unexpected error occurred. Please try again.');
+            // Show the actual error message to help debugging
+            setError(`Login failed: ${err.message || 'Unknown error'}`);
         } finally {
             setLoading(false);
         }

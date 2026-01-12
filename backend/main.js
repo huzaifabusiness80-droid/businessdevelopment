@@ -38,11 +38,15 @@ ipcMain.handle("add-sale", (event, data) => {
 
 // Create window
 function createWindow() {
+    console.log("Preload path:", path.join(__dirname, "preload.js"));
     const win = new BrowserWindow({
         width: 1200,
         height: 800,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: false // Try disabling sandbox temporarily to rule it out
         },
     });
 

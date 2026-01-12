@@ -5,24 +5,24 @@ const { app } = require('electron');
 // Ensure database file is stored in user data directory for production persistence
 // or in the project root for development
 const dbPath = app.isPackaged
-    ? path.join(app.getPath('userData'), 'business.db')
-    : path.join(__dirname, 'business.db');
+  ? path.join(app.getPath('userData'), 'business.db')
+  : path.join(__dirname, 'business.db');
 
 console.log("Connecting to database at:", dbPath);
 
 const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Database opening error: ', err);
-    } else {
-        console.log('Database connected at:', dbPath);
-        initSchema();
-    }
+  if (err) {
+    console.error('Database opening error: ', err);
+  } else {
+    console.log('Database connected at:', dbPath);
+    initSchema();
+  }
 });
 
 function initSchema() {
-    db.serialize(() => {
-        // 1. Companies (Tenants)
-        db.run(`CREATE TABLE IF NOT EXISTS companies (
+  db.serialize(() => {
+    // 1. Companies (Tenants)
+    db.run(`CREATE TABLE IF NOT EXISTS companies (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       address TEXT,
@@ -35,8 +35,8 @@ function initSchema() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
-        // 2. Users (Auth) - Now linked to a Company
-        db.run(`CREATE TABLE IF NOT EXISTS users (
+    // 2. Users (Auth) - Now linked to a Company
+    db.run(`CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       company_id INTEGER, -- Null for Super Admin
       username TEXT UNIQUE,
@@ -48,8 +48,8 @@ function initSchema() {
       FOREIGN KEY(company_id) REFERENCES companies(id)
     )`);
 
-        // 3. Categories
-        db.run(`CREATE TABLE IF NOT EXISTS categories (
+    // 3. Categories
+    db.run(`CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       company_id INTEGER,
       name TEXT,
@@ -57,8 +57,8 @@ function initSchema() {
       FOREIGN KEY(company_id) REFERENCES companies(id)
     )`);
 
-        // 4. Vendors (Suppliers)
-        db.run(`CREATE TABLE IF NOT EXISTS vendors (
+    // 4. Vendors (Suppliers)
+    db.run(`CREATE TABLE IF NOT EXISTS vendors (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       company_id INTEGER,
       name TEXT NOT NULL,
@@ -70,8 +70,8 @@ function initSchema() {
       FOREIGN KEY(company_id) REFERENCES companies(id)
     )`);
 
-        // 5. Products (Inventory)
-        db.run(`CREATE TABLE IF NOT EXISTS products (
+    // 5. Products (Inventory)
+    db.run(`CREATE TABLE IF NOT EXISTS products (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       company_id INTEGER,
       code TEXT, -- Barcode/SKU (Unique per company logic needs to be handled in app)
@@ -88,8 +88,8 @@ function initSchema() {
       FOREIGN KEY(vendor_id) REFERENCES vendors(id)
     )`);
 
-        // 6. Customers
-        db.run(`CREATE TABLE IF NOT EXISTS customers (
+    // 6. Customers
+    db.run(`CREATE TABLE IF NOT EXISTS customers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       company_id INTEGER,
       name TEXT NOT NULL,
@@ -102,8 +102,8 @@ function initSchema() {
       FOREIGN KEY(company_id) REFERENCES companies(id)
     )`);
 
-        // 7. Sales (Head)
-        db.run(`CREATE TABLE IF NOT EXISTS sales (
+    // 7. Sales (Head)
+    db.run(`CREATE TABLE IF NOT EXISTS sales (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       company_id INTEGER,
       customer_id INTEGER,
@@ -120,8 +120,8 @@ function initSchema() {
       FOREIGN KEY(customer_id) REFERENCES customers(id)
     )`);
 
-        // 8. Sale Items (Detail)
-        db.run(`CREATE TABLE IF NOT EXISTS sale_items (
+    // 8. Sale Items (Detail)
+    db.run(`CREATE TABLE IF NOT EXISTS sale_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       sale_id INTEGER,
       product_id INTEGER,
@@ -132,8 +132,8 @@ function initSchema() {
       FOREIGN KEY(product_id) REFERENCES products(id)
     )`);
 
-        // 9. Purchases (Head)
-        db.run(`CREATE TABLE IF NOT EXISTS purchases (
+    // 9. Purchases (Head)
+    db.run(`CREATE TABLE IF NOT EXISTS purchases (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       company_id INTEGER,
       vendor_id INTEGER,
@@ -145,8 +145,8 @@ function initSchema() {
       FOREIGN KEY(vendor_id) REFERENCES vendors(id)
     )`);
 
-        // 10. Purchase Items (Detail)
-        db.run(`CREATE TABLE IF NOT EXISTS purchase_items (
+    // 10. Purchase Items (Detail)
+    db.run(`CREATE TABLE IF NOT EXISTS purchase_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       purchase_id INTEGER,
       product_id INTEGER,
@@ -157,28 +157,28 @@ function initSchema() {
       FOREIGN KEY(product_id) REFERENCES products(id)
     )`);
 
-        // Seed Super Admin if not exists
-        db.get("SELECT count(*) as count FROM users WHERE role='super_admin'", (err, row) => {
-            if (row && row.count === 0) {
-                // Create Super Admin
-                db.run(`INSERT INTO users (username, password, role, fullname) VALUES (?, ?, ?, ?)`,
-                    ['superadmin', 'admin123', 'super_admin', 'System Owner']);
-                console.log("Super Admin created.");
+    // Seed Super Admin if not exists
+    db.get("SELECT count(*) as count FROM users WHERE role='super_admin'", (err, row) => {
+      if (row && row.count === 0) {
+        // Create Super Admin
+        db.run(`INSERT INTO users (username, password, role, fullname) VALUES (?, ?, ?, ?)`,
+          ['superadmin', 'admin123', 'super_admin', 'System Owner']);
+        console.log("Super Admin created.");
 
-                // Create Default Company (For demo/first use)
-                db.run(`INSERT INTO companies (name) VALUES (?)`, ['Default Company'], function (err) {
-                    if (!err && this.lastID) {
-                        const companyId = this.lastID;
-                        // Create Admin for this company
-                        db.run(`INSERT INTO users (company_id, username, password, role, fullname) VALUES (?, ?, ?, ?, ?)`,
-                            [companyId, 'admin', 'admin123', 'admin', 'Business Owner']);
-                        console.log("Default Company and Admin created.");
-                    }
-                });
-            }
+        // Create Default Company (For demo/first use)
+        db.run(`INSERT INTO companies (name) VALUES (?)`, ['Default Company'], function (err) {
+          if (!err && this.lastID) {
+            const companyId = this.lastID;
+            // Create Admin for this company
+            db.run(`INSERT INTO users (company_id, username, password, role, fullname) VALUES (?, ?, ?, ?, ?)`,
+              [companyId, 'admin', 'admin123', 'admin', 'Business Owner']);
+            console.log("Default Company and Admin created.");
+          }
         });
-
+      }
     });
+
+  });
 }
 
 module.exports = db;
