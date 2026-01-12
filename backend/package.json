@@ -1,0 +1,35 @@
+{
+    "name": "businessmanagementapp",
+    "version": "1.0.0",
+    "description": "",
+    "main": "main.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "electron": "electron .",
+        "build": "react-scripts build",
+        "dist": "electron-builder"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "dependencies": {
+        "sqlite3": "^5.1.7"
+    },
+    "devDependencies": {
+        "electron": "^39.2.7",
+        "electron-builder": "^26.4.0"
+    },
+    "build": {
+        "appId": "com.businessmanagementapp.bms",
+        "productName": "BusinessManagementApp",
+        "directories": {
+            "buildResources": "assets",
+            "output": "dist"
+        },
+        "win": {
+            "target": "nsis",
+            "icon": "assets/icon.ico"
+        }
+    }
+}
