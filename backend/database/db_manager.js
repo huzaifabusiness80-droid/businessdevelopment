@@ -157,6 +157,94 @@ function initSchema() {
       FOREIGN KEY(product_id) REFERENCES products(id)
     )`);
 
+    // 11. Roles (Custom roles per company)
+    db.run(`CREATE TABLE IF NOT EXISTS roles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      company_id INTEGER,
+      name TEXT NOT NULL,
+      description TEXT,
+      is_system INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(company_id) REFERENCES companies(id)
+    )`);
+
+    // 12. Permissions (Granular module access per role)
+    db.run(`CREATE TABLE IF NOT EXISTS permissions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      role_id INTEGER NOT NULL,
+      module TEXT NOT NULL,
+      can_view INTEGER DEFAULT 0,
+      can_create INTEGER DEFAULT 0,
+      can_edit INTEGER DEFAULT 0,
+      can_delete INTEGER DEFAULT 0,
+      FOREIGN KEY(role_id) REFERENCES roles(id) ON DELETE CASCADE
+    )`);
+
+    // 13. Audit Logs (Track user actions)
+    db.run(`CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      company_id INTEGER,
+      user_id INTEGER,
+      action TEXT NOT NULL,
+      module TEXT,
+      details TEXT,
+      ip_address TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(company_id) REFERENCES companies(id),
+      FOREIGN KEY(user_id) REFERENCES users(id)
+    )`);
+
+    // Seed default system roles if not exists
+    db.get("SELECT count(*) as count FROM roles WHERE is_system = 1", (err, row) => {
+      if (row && row.count === 0) {
+        // Create system roles (null company_id means system-wide)
+        const systemRoles = [
+          { name: 'Super Admin', description: 'Full system access', isSystem: 1 },
+          { name: 'Admin', description: 'Full company access', isSystem: 1 },
+          { name: 'Manager', description: 'Management level access', isSystem: 1 },
+          { name: 'Cashier', description: 'Basic sales access', isSystem: 1 },
+        ];
+
+        const modules = ['dashboard', 'sales', 'purchase', 'products', 'inventory',
+          'customers', 'suppliers', 'expenses', 'reports', 'users', 'settings'];
+
+        systemRoles.forEach((role, idx) => {
+          db.run(`INSERT INTO roles (company_id, name, description, is_system) VALUES (?, ?, ?, ?)`,
+            [null, role.name, role.description, role.isSystem], function (err) {
+              if (!err && this.lastID) {
+                const roleId = this.lastID;
+                // Create permissions for each module based on role
+                modules.forEach(module => {
+                  let perms = { view: 1, create: 0, edit: 0, delete: 0 };
+
+                  if (role.name === 'Super Admin' || role.name === 'Admin') {
+                    perms = { view: 1, create: 1, edit: 1, delete: 1 };
+                  } else if (role.name === 'Manager') {
+                    perms = { view: 1, create: 1, edit: 1, delete: 0 };
+                    if (module === 'users' || module === 'settings') {
+                      perms = { view: 1, create: 0, edit: 0, delete: 0 };
+                    }
+                  } else if (role.name === 'Cashier') {
+                    perms = { view: 1, create: 0, edit: 0, delete: 0 };
+                    if (module === 'sales') {
+                      perms = { view: 1, create: 1, edit: 0, delete: 0 };
+                    }
+                    if (module === 'users' || module === 'settings') {
+                      perms = { view: 0, create: 0, edit: 0, delete: 0 };
+                    }
+                  }
+
+                  db.run(`INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete) 
+                          VALUES (?, ?, ?, ?, ?, ?)`,
+                    [roleId, module, perms.view, perms.create, perms.edit, perms.delete]);
+                });
+              }
+            });
+        });
+        console.log("System roles and permissions created.");
+      }
+    });
+
     // Seed Super Admin if not exists
     db.get("SELECT count(*) as count FROM users WHERE role='super_admin'", (err, row) => {
       if (row && row.count === 0) {

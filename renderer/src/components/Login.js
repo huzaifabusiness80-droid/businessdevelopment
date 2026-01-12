@@ -13,11 +13,47 @@ const Login = ({ onLoginSuccess }) => {
         setLoading(true);
 
         try {
-            // Call the exposed Electron API for login
-            const result = await window.electronAPI.loginUser({ username, password });
+            let result;
+
+            // Check if running in Electron or Browser
+            if (window.electronAPI) {
+                // Call the exposed Electron API for login
+                result = await window.electronAPI.loginUser({ username, password });
+            } else {
+                // Mock login for browser development
+                console.warn('Electron API not found. Using mock login.');
+                await new Promise(resolve => setTimeout(resolve, 800)); // Simulate delay
+
+                if (username === 'admin' && password === 'admin') {
+                    result = {
+                        success: true,
+                        user: {
+                            id: 1,
+                            username: 'admin',
+                            fullname: 'Administrator',
+                            role: 'admin',
+                            company_id: 1
+                        }
+                    };
+                } else if (username && password) {
+                    // Generic mock user for other credentials
+                    result = {
+                        success: true,
+                        user: {
+                            id: 999,
+                            username: username,
+                            fullname: 'Test User',
+                            role: 'manager',
+                            company_id: 1
+                        }
+                    };
+                } else {
+                    result = { success: false, message: 'Invalid credentials' };
+                }
+            }
 
             if (result.success) {
-                onLoginSuccess(result.user);
+                onLoginSuccess(result.user, result.permissions || []);
             } else {
                 setError(result.message || 'Invalid credentials');
             }
