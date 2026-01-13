@@ -4,3 +4,5 @@ renderer/node_modules/
 renderer/build/
 .env
 *.log
+.vercel
+.env*.local

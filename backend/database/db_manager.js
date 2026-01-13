@@ -24,6 +24,8 @@ function initSchema() {
     // 1. Companies (Tenants)
     db.run(`CREATE TABLE IF NOT EXISTS companies (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      global_id TEXT, -- Cloud ID
+      sync_status TEXT DEFAULT 'pending', -- pending, synced, failed
       name TEXT NOT NULL,
       address TEXT,
       phone TEXT,
@@ -32,19 +34,23 @@ function initSchema() {
       currency_symbol TEXT DEFAULT 'PKR',
       logo_path TEXT,
       is_active INTEGER DEFAULT 1,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
     // 2. Users (Auth) - Now linked to a Company
     db.run(`CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       company_id INTEGER, -- Null for Super Admin
+      global_id TEXT, -- Cloud ID
+      sync_status TEXT DEFAULT 'pending', -- pending, synced, failed
       username TEXT UNIQUE,
       password TEXT, 
       role TEXT DEFAULT 'admin', -- super_admin, admin, manager, cashier
       fullname TEXT,
       is_active INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(company_id) REFERENCES companies(id)
     )`);
 

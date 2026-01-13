@@ -1,8 +1,18 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 const db = require("./database/db_manager");
+const syncService = require("./services/sync_service");
 
 // IPC Handlers
+ipcMain.handle("trigger-sync", async () => {
+    try {
+        await syncService.syncData();
+        return { success: true, message: "Sync completed" };
+    } catch (error) {
+        return { success: false, message: error.message };
+    }
+});
+
 ipcMain.handle("login", (event, { username, password }) => {
     return new Promise((resolve, reject) => {
         db.get(
