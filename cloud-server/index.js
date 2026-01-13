@@ -150,7 +150,7 @@ app.put('/api/companies/:id', async (req, res) => {
 // USERS
 // ==========================================
 
-app.get('/' , (req , res)=>{
+app.get('/', (req, res) => {
     res.send("Hello World")
 })
 app.get('/api/users', async (req, res) => {
@@ -298,6 +298,10 @@ app.get('/api/roles', async (req, res) => {
 
 
 // Start Server
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Cloud Server is running on port ${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Cloud Server is running on port ${PORT}`);
+    });
+}
+
+module.exports = app;
