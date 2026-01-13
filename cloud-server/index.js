@@ -15,6 +15,9 @@ app.use(express.json());
 app.get('/', (req, res) => {
     res.send('BMS Cloud Server hello bhai kese ho Running');
 });
+app.get('/umer', (req, res) => {
+    res.send('alhumdulillah');
+});
 
 // SYNC ENDPOINT: Receive Data from Local App
 
