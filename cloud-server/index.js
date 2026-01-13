@@ -149,6 +149,10 @@ app.put('/api/companies/:id', async (req, res) => {
 // ==========================================
 // USERS
 // ==========================================
+
+app.get('/' , (req , res)=>{
+    res.send("Hello World")
+})
 app.get('/api/users', async (req, res) => {
     try {
         const { companyId } = req.query;
