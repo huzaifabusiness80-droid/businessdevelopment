@@ -13,7 +13,7 @@ app.use(express.json());
 
 // Routes
 app.get('/', (req, res) => {
-    res.send('BMS Cloud Server is Running');
+    res.send('BMS Cloud Server hello bhai kese ho Running');
 });
 
 // SYNC ENDPOINT: Receive Data from Local App
