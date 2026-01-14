@@ -1,11 +1,12 @@
 const db = require('../database/db_manager');
 const axios = require('axios');
 
-const CLOUD_URL = 'http://localhost:5000/api'; // TODO: Make configurable
+const CLOUD_URL = 'http://localhost:2000/api'; // Match cloud-server port
 
 class SyncService {
     constructor() {
         this.isSyncing = false;
+        this.CLOUD_URL = CLOUD_URL;
     }
 
     async syncData() {
@@ -65,7 +66,7 @@ class SyncService {
                     address: company.address,
                     phone: company.phone,
                     email: company.email,
-                    taxNumber: company.tax_no, // Local: tax_no -> Cloud: taxNumber? Check Schema
+                    tax_no: company.tax_no, // Use tax_no directly if cloud server handles it (it expects tax_no/taxNumber)
                     logoUrl: company.logo_path,
                     currency: company.currency_symbol,
                     // Cloud generates ID, we store it
@@ -101,11 +102,8 @@ class SyncService {
                 }
 
                 const payload = {
-                    username: user.username,
-                    password: user.password, // Be careful sending raw passwords. Secure this later.
-                    roleId: null, // We need to handle roles mapping. For now let's focus on user creation.
-                    // Or Cloud might create default role?
                     companyId: company.global_id,
+                    role: user.role, // Pass role name, cloud server resolves it
                     fullName: user.fullname,
                     email: user.email, // If exists in local
                 };

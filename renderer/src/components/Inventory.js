@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Package, Grid, BarChart2, AlertTriangle, Printer, Plus, Search, Edit, Trash2, Image } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Package, Grid, BarChart2, AlertTriangle, Printer, Plus, Search, Edit, Trash2, Image, X } from 'lucide-react';
+import Products from './Products'; // Import the new dynamic Products component
 
 const tabs = [
     { id: 'products', label: 'Products', icon: Package },
@@ -25,8 +26,8 @@ const Inventory = () => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.id
-                                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
-                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                                 }`}
                         >
                             <tab.icon size={18} />
@@ -36,7 +37,7 @@ const Inventory = () => {
                 </div>
 
                 <div className="p-6">
-                    {activeTab === 'products' && <ProductManagement />}
+                    {activeTab === 'products' && <Products />}
                     {activeTab === 'categories' && <CategoriesBrands />}
                     {activeTab === 'stock' && <StockTracking />}
                     {activeTab === 'alerts' && <LowStockAlerts />}
@@ -47,98 +48,149 @@ const Inventory = () => {
     );
 };
 
-const ProductManagement = () => (
-    <div className="space-y-4">
-        <div className="flex items-center justify-between">
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input type="text" className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg w-64" placeholder="Search products..." />
-            </div>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
-                <Plus size={18} />
-                <span>Add Product</span>
-            </button>
-        </div>
-        <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 text-gray-600 font-medium">
-                    <tr>
-                        <th className="px-6 py-4">Image</th>
-                        <th className="px-6 py-4">Product Name</th>
-                        <th className="px-6 py-4">SKU</th>
-                        <th className="px-6 py-4">Category</th>
-                        <th className="px-6 py-4">Buy Price</th>
-                        <th className="px-6 py-4">Sell Price</th>
-                        <th className="px-6 py-4">Stock</th>
-                        <th className="px-6 py-4">Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                    {[
-                        { name: 'Product A', sku: 'SKU001', category: 'Electronics', buy: 500, sell: 750, stock: 25 },
-                        { name: 'Product B', sku: 'SKU002', category: 'Groceries', buy: 100, sell: 150, stock: 5 },
-                        { name: 'Product C', sku: 'SKU003', category: 'Electronics', buy: 1000, sell: 1500, stock: 12 },
-                    ].map((product, i) => (
-                        <tr key={i} className="hover:bg-gray-50">
-                            <td className="px-6 py-4"><div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center"><Image size={16} className="text-gray-400" /></div></td>
-                            <td className="px-6 py-4 font-medium">{product.name}</td>
-                            <td className="px-6 py-4 text-gray-500">{product.sku}</td>
-                            <td className="px-6 py-4"><span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">{product.category}</span></td>
-                            <td className="px-6 py-4">PKR {product.buy}</td>
-                            <td className="px-6 py-4 font-semibold">PKR {product.sell}</td>
-                            <td className="px-6 py-4"><span className={`px-2 py-1 rounded text-xs ${product.stock < 10 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{product.stock}</span></td>
-                            <td className="px-6 py-4">
-                                <div className="flex space-x-2">
-                                    <button className="p-1 text-gray-400 hover:text-blue-600"><Edit size={16} /></button>
-                                    <button className="p-1 text-gray-400 hover:text-red-600"><Trash2 size={16} /></button>
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    </div>
-);
+const CategoriesBrands = () => {
+    const [categories, setCategories] = useState([]);
+    const [brands, setBrands] = useState([]);
+    const [modalConfig, setModalConfig] = useState(null); // { type: 'category' | 'brand', item: null | object }
+    const [name, setName] = useState('');
 
-const CategoriesBrands = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <h3 className="font-bold text-gray-800">Categories</h3>
-                <button className="flex items-center space-x-1 text-blue-600 text-sm"><Plus size={16} /><span>Add</span></button>
-            </div>
-            <div className="space-y-2">
-                {['Electronics', 'Groceries', 'Clothing', 'Home & Kitchen'].map((cat, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span>{cat}</span>
-                        <div className="flex space-x-2">
-                            <button className="text-gray-400 hover:text-blue-600"><Edit size={14} /></button>
-                            <button className="text-gray-400 hover:text-red-600"><Trash2 size={14} /></button>
+    const currentUser = JSON.parse(sessionStorage.getItem('user'));
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        if (currentUser?.company_id) {
+            const fetchedCategories = await window.electronAPI.getCategories(currentUser.company_id);
+            const fetchedBrands = await window.electronAPI.getBrands(currentUser.company_id);
+            setCategories(fetchedCategories || []);
+            setBrands(fetchedBrands || []);
+        }
+    };
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        const { type, item } = modalConfig;
+        const payload = {
+            id: item?.id,
+            name,
+            companyId: currentUser.company_id
+        };
+
+        let result;
+        if (type === 'category') {
+            result = item ? await window.electronAPI.updateCategory(payload)
+                : await window.electronAPI.createCategory(payload);
+        } else {
+            result = item ? await window.electronAPI.updateBrand(payload)
+                : await window.electronAPI.createBrand(payload);
+        }
+
+        if (result.success) {
+            setModalConfig(null);
+            setName('');
+            fetchData();
+        } else {
+            alert("Error: " + result.message);
+        }
+    };
+
+    const handleDelete = async (type, id) => {
+        if (!window.confirm(`Delete this ${type}?`)) return;
+
+        let result;
+        if (type === 'category') result = await window.electronAPI.deleteCategory(id);
+        else result = await window.electronAPI.deleteBrand(id);
+
+        if (result.success) fetchData();
+        else alert("Error: " + result.message);
+    };
+
+    const openModal = (type, item = null) => {
+        setModalConfig({ type, item });
+        setName(item ? item.name : '');
+    };
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Categories Column */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-gray-800">Categories</h3>
+                    <button onClick={() => openModal('category')} className="flex items-center space-x-1 text-blue-600 text-sm hover:underline">
+                        <Plus size={16} /><span>Add Category</span>
+                    </button>
+                </div>
+                <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                    {categories.map((cat) => (
+                        <div key={cat.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                            <span className="font-medium text-gray-700">{cat.name}</span>
+                            <div className="flex space-x-2">
+                                <button onClick={() => openModal('category', cat)} className="text-gray-400 hover:text-blue-600"><Edit size={14} /></button>
+                                <button onClick={() => handleDelete('category', cat.id)} className="text-gray-400 hover:text-red-600"><Trash2 size={14} /></button>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                    {categories.length === 0 && <p className="text-sm text-gray-400 italic">No categories added</p>}
+                </div>
             </div>
-        </div>
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <h3 className="font-bold text-gray-800">Brands</h3>
-                <button className="flex items-center space-x-1 text-blue-600 text-sm"><Plus size={16} /><span>Add</span></button>
-            </div>
-            <div className="space-y-2">
-                {['Samsung', 'Apple', 'LG', 'Sony', 'Local'].map((brand, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span>{brand}</span>
-                        <div className="flex space-x-2">
-                            <button className="text-gray-400 hover:text-blue-600"><Edit size={14} /></button>
-                            <button className="text-gray-400 hover:text-red-600"><Trash2 size={14} /></button>
+
+            {/* Brands Column */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-gray-800">Brands</h3>
+                    <button onClick={() => openModal('brand')} className="flex items-center space-x-1 text-blue-600 text-sm hover:underline">
+                        <Plus size={16} /><span>Add Brand</span>
+                    </button>
+                </div>
+                <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                    {brands.map((brand) => (
+                        <div key={brand.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
+                            <span className="font-medium text-gray-700">{brand.name}</span>
+                            <div className="flex space-x-2">
+                                <button onClick={() => openModal('brand', brand)} className="text-gray-400 hover:text-blue-600"><Edit size={14} /></button>
+                                <button onClick={() => handleDelete('brand', brand.id)} className="text-gray-400 hover:text-red-600"><Trash2 size={14} /></button>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                    {brands.length === 0 && <p className="text-sm text-gray-400 italic">No brands added</p>}
+                </div>
             </div>
+
+            {/* Modal */}
+            {modalConfig && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl w-full max-w-sm p-6 shadow-xl">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-bold text-gray-800">
+                                {modalConfig.item ? 'Edit' : 'Add'} {modalConfig.type === 'category' ? 'Category' : 'Brand'}
+                            </h3>
+                            <button onClick={() => setModalConfig(null)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+                        </div>
+                        <form onSubmit={handleSave} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                <input
+                                    autoFocus
+                                    required
+                                    type="text"
+                                    className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder={`Enter ${modalConfig.type} name...`}
+                                />
+                            </div>
+                            <button type="submit" className="w-full py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">
+                                Save
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
-    </div>
-);
+    );
+};
 
 const StockTracking = () => (
     <div className="space-y-4">

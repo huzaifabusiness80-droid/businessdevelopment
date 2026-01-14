@@ -25,6 +25,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
     deleteRole: (id) => ipcRenderer.invoke('delete-role', id),
     getPermissions: (roleId) => ipcRenderer.invoke('get-permissions', roleId),
 
+    // Inventory APIs
+    getBrands: (companyId) => ipcRenderer.invoke('get-brands', companyId),
+    createBrand: (data) => ipcRenderer.invoke('create-brand', data),
+    updateBrand: (data) => ipcRenderer.invoke('update-brand', data),
+    deleteBrand: (id) => ipcRenderer.invoke('delete-brand', id),
+
+    getCategories: (companyId) => ipcRenderer.invoke('get-categories', companyId),
+    createCategory: (data) => ipcRenderer.invoke('create-category', data),
+    updateCategory: (data) => ipcRenderer.invoke('update-category', data),
+    deleteCategory: (id) => ipcRenderer.invoke('delete-category', id),
+
+    getProducts: (companyId) => ipcRenderer.invoke('get-products', companyId),
+    createProduct: (data) => ipcRenderer.invoke('create-product', data),
+    updateProduct: (data) => ipcRenderer.invoke('update-product', data),
+    deleteProduct: (id) => ipcRenderer.invoke('delete-product', id),
+
     // Audit Log APIs
     getAuditLogs: (params) => ipcRenderer.invoke('get-audit-logs', params),
     createAuditLog: (data) => ipcRenderer.invoke('create-audit-log', data),

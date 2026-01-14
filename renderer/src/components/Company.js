@@ -31,7 +31,7 @@ const Company = () => {
         if (savedUser) setCurrentUser(JSON.parse(savedUser));
     }, []);
 
-    const isSuperAdmin = currentUser?.role === 'super_admin';
+    const isSuperAdmin = currentUser?.role?.toLowerCase() === 'super_admin' || currentUser?.role === 'Super Admin';
 
     return (
         <div className="space-y-6">
@@ -49,17 +49,18 @@ const Company = () => {
                 <div className="flex border-b border-gray-100 bg-gray-50/50">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
+                        const label = (tab.id === 'profile' && isSuperAdmin) ? 'Companies' : tab.label;
                         return (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-all relative ${activeTab === tab.id
-                                        ? 'text-emerald-600 bg-white'
-                                        : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                                    ? 'text-emerald-600 bg-white'
+                                    : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
                                     }`}
                             >
                                 <Icon size={18} />
-                                <span>{tab.label}</span>
+                                <span>{label}</span>
                                 {activeTab === tab.id && (
                                     <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500"></span>
                                 )}

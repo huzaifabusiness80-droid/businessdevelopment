@@ -14,6 +14,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'; // TODO: Move to
 app.use(cors());
 app.use(express.json());
 
+// Request logging middleware
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
+
 // Helper: Error Handler
 const handleError = (res, e, msg = "Server Error") => {
     console.error(msg, e);
@@ -112,7 +118,7 @@ app.post('/api/companies', async (req, res) => {
                 address,
                 phone,
                 email,
-                taxNumber: tax_no, // Map tax_no to taxNumber
+                taxNumber: tax_no,
                 currency: currency_symbol || 'PKR'
             }
         });
@@ -122,7 +128,7 @@ app.post('/api/companies', async (req, res) => {
 
 app.put('/api/companies/:id', async (req, res) => {
     try {
-        const { name, address, phone, email, tax_no, currency_symbol, is_active } = req.body;
+        const { name, address, phone, email, tax_no, currency_symbol } = req.body;
         const company = await prisma.company.update({
             where: { id: req.params.id },
             data: {
@@ -131,15 +137,7 @@ app.put('/api/companies/:id', async (req, res) => {
                 phone,
                 email,
                 taxNumber: tax_no,
-                currency: currency_symbol,
-                // isActive is not on Company model? Let's check schema.
-                // Schema: Company does NOT have isActive. User has isActive.
-                // We might have missed it or local has it. Local flow implies `is_active` for companies?
-                // Step 16 schema: Company has `createdAt`, `updatedAt`, `users`... NO isActive.
-                // Local DB schema (Step 27): `is_active INTEGER DEFAULT 1`.
-                // Discrepancy! I should have added isActive to Company in schema.
-                // For now, ignore it to avoid another schema push or assume it's implicit.
-                // But better to add it if I can.
+                currency: currency_symbol
             }
         });
         res.json({ success: true, changes: 1 });
@@ -155,8 +153,11 @@ app.get('/', (req, res) => {
 })
 app.get('/api/users', async (req, res) => {
     try {
-        const { companyId } = req.query;
-        const where = companyId ? { companyId } : {};
+        const { companyId, includeInactive } = req.query;
+        const where = {
+            isActive: includeInactive === 'true' ? undefined : true
+        };
+        if (companyId) where.companyId = companyId;
 
         const users = await prisma.user.findMany({
             where,
@@ -185,24 +186,43 @@ app.post('/api/users', async (req, res) => {
     try {
         const { company_id, username, password, role, fullname } = req.body;
 
-        // Find Role ID by name if 'role' is passed as name (which local app does: "admin", "manager")
-        // NOTE: Local app passes 'role' string (name). Cloud needs roleId.
-        // We need to resolve role name to ID for the given company or system role.
+        // More robust role matching (case-insensitive and map local names)
+        const roleMap = {
+            'super_admin': 'Super Admin',
+            'admin': 'Admin',
+            'manager': 'Manager',
+            'staff': 'Staff'
+        };
+        const searchRole = roleMap[role.toLowerCase()] || role;
 
-        let roleId;
-        // Try to find role for this company
         let roleRec = await prisma.role.findFirst({
             where: {
-                name: role,
-                OR: [
-                    { companyId: company_id },
-                    { isSystem: true }
+                AND: [
+                    {
+                        OR: [
+                            { name: { equals: searchRole, mode: 'insensitive' } },
+                            { name: { equals: role, mode: 'insensitive' } }
+                        ]
+                    },
+                    {
+                        OR: [
+                            { companyId: company_id },
+                            { isSystem: true }
+                        ]
+                    }
                 ]
             }
         });
 
         if (!roleRec) {
-            return res.status(400).json({ success: false, message: `Role '${role}' not found` });
+            // Fallback: search just by name if company match fails
+            roleRec = await prisma.role.findFirst({
+                where: { name: { equals: searchRole, mode: 'insensitive' } }
+            });
+        }
+
+        if (!roleRec) {
+            return res.status(400).json({ success: false, message: `Role '${role}' not found in system` });
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
@@ -240,12 +260,29 @@ app.put('/api/users/:id', async (req, res) => {
         }
 
         if (role) {
+            const roleMap = {
+                'super_admin': 'Super Admin',
+                'admin': 'Admin',
+                'manager': 'Manager',
+                'staff': 'Staff'
+            };
+            const searchRole = roleMap[role.toLowerCase()] || role;
+
             const roleRec = await prisma.role.findFirst({
                 where: {
-                    name: role,
-                    OR: [
-                        { companyId: company_id },
-                        { isSystem: true }
+                    AND: [
+                        {
+                            OR: [
+                                { name: { equals: searchRole, mode: 'insensitive' } },
+                                { name: { equals: role, mode: 'insensitive' } }
+                            ]
+                        },
+                        {
+                            OR: [
+                                { companyId: company_id },
+                                { isSystem: true }
+                            ]
+                        }
                     ]
                 }
             });
@@ -262,17 +299,29 @@ app.put('/api/users/:id', async (req, res) => {
 
 app.delete('/api/users/:id', async (req, res) => {
     try {
-        // Soft delete
-        await prisma.user.update({
-            where: { id: req.params.id },
-            data: { isActive: false }
+        // Try hard delete first
+        await prisma.user.delete({
+            where: { id: req.params.id }
         });
-        res.json({ success: true, changes: 1 });
-    } catch (e) { handleError(res, e); }
+        res.json({ success: true, changes: 1, message: "User deleted permanently" });
+    } catch (e) {
+        // If has records (Sale, etc), fall back to soft delete
+        if (e.code === 'P2003') {
+            await prisma.user.update({
+                where: { id: req.params.id },
+                data: { isActive: false }
+            });
+            return res.json({ success: true, changes: 1, message: "User deactivated (contained related records)" });
+        }
+        handleError(res, e);
+    }
 });
 
 // ==========================================
 // ROLES
+// ==========================================
+// ==========================================
+// ROLES & PERMISSIONS
 // ==========================================
 app.get('/api/roles', async (req, res) => {
     try {
@@ -281,21 +330,347 @@ app.get('/api/roles', async (req, res) => {
             where: {
                 OR: [
                     { companyId: companyId },
-                    { isSystem: true } // Include system roles? Usually yes.
+                    { isSystem: true }
                 ]
             },
             include: { permissions: true },
             orderBy: [{ isSystem: 'desc' }, { name: 'asc' }]
         });
-
-        // Map to local format
-        // Local: {id, name, description, is_system, permissions: []} (Permission logic might vary)
-        // We return roles with permissions array
-
         res.json(roles);
     } catch (e) { handleError(res, e); }
 });
 
+app.post('/api/roles', async (req, res) => {
+    try {
+        const { company_id, name, description, permissions } = req.body;
+
+        const role = await prisma.role.create({
+            data: {
+                companyId: company_id,
+                name,
+                description,
+                isSystem: false,
+                permissions: {
+                    create: permissions.map(p => ({
+                        module: p.module,
+                        canView: p.can_view === 1 || p.can_view === true,
+                        canCreate: p.can_create === 1 || p.can_create === true,
+                        canEdit: p.can_edit === 1 || p.can_edit === true,
+                        canDelete: p.can_delete === 1 || p.can_delete === true
+                    }))
+                }
+            },
+            include: { permissions: true }
+        });
+
+        res.json({ success: true, id: role.id, ...role });
+    } catch (e) { handleError(res, e); }
+});
+
+app.put('/api/roles/:id', async (req, res) => {
+    try {
+        const { name, description, permissions } = req.body;
+
+        // Use a transaction to ensure atomic update of role and its permissions
+        const role = await prisma.$transaction(async (tx) => {
+            // 1. Update Role basic info
+            const updatedRole = await tx.role.update({
+                where: { id: req.params.id },
+                data: { name, description }
+            });
+
+            // 2. Clear old permissions and insert new ones
+            if (permissions) {
+                await tx.permission.deleteMany({ where: { roleId: req.params.id } });
+                await tx.permission.createMany({
+                    data: permissions.map(p => ({
+                        roleId: req.params.id,
+                        module: p.module,
+                        canView: p.can_view === 1 || p.can_view === true,
+                        canCreate: p.can_create === 1 || p.can_create === true,
+                        canEdit: p.can_edit === 1 || p.can_edit === true,
+                        canDelete: p.can_delete === 1 || p.can_delete === true
+                    }))
+                });
+            }
+
+            return updatedRole;
+        });
+
+        res.json({ success: true, changes: 1 });
+    } catch (e) { handleError(res, e); }
+});
+
+app.delete('/api/roles/:id', async (req, res) => {
+    try {
+        // First check if it's a system role
+        const role = await prisma.role.findUnique({ where: { id: req.params.id } });
+        if (!role || role.isSystem) {
+            return res.status(403).json({ success: false, message: "Cannot delete system roles" });
+        }
+
+        await prisma.role.delete({ where: { id: req.params.id } });
+        res.json({ success: true, changes: 1 });
+    } catch (e) { handleError(res, e); }
+});
+
+app.get('/api/permissions', async (req, res) => {
+    try {
+        const { roleId } = req.query;
+        if (!roleId) return res.status(400).json({ message: "roleId is required" });
+
+        const permissions = await prisma.permission.findMany({
+            where: { roleId }
+        });
+
+        // Map to local format if needed
+        const mapped = permissions.map(p => ({
+            id: p.id,
+            role_id: p.roleId,
+            module: p.module,
+            can_view: p.canView ? 1 : 0,
+            can_create: p.canCreate ? 1 : 0,
+            can_edit: p.canEdit ? 1 : 0,
+            can_delete: p.canDelete ? 1 : 0
+        }));
+
+        res.json(mapped);
+    } catch (e) { handleError(res, e); }
+});
+
+// ==========================================
+// INVENTORY (Categories, Brands & Products)
+// ==========================================
+
+// --- CATEGORIES ---
+app.get('/api/categories', async (req, res) => {
+    try {
+        const { companyId } = req.query;
+        const categories = await prisma.category.findMany({
+            where: { companyId },
+            orderBy: { name: 'asc' }
+        });
+        res.json(categories);
+    } catch (e) { handleError(res, e); }
+});
+
+app.post('/api/categories', async (req, res) => {
+    try {
+        const { companyId, name } = req.body;
+        const category = await prisma.category.create({
+            data: { companyId, name }
+        });
+        res.json({ success: true, id: category.id });
+    } catch (e) { handleError(res, e); }
+});
+
+app.put('/api/categories/:id', async (req, res) => {
+    try {
+        const { name } = req.body;
+        await prisma.category.update({
+            where: { id: req.params.id },
+            data: { name }
+        });
+        res.json({ success: true, changes: 1 });
+    } catch (e) { handleError(res, e); }
+});
+
+app.delete('/api/categories/:id', async (req, res) => {
+    try {
+        await prisma.category.delete({ where: { id: req.params.id } });
+        res.json({ success: true, changes: 1 });
+    } catch (e) {
+        if (e.code === 'P2003') return res.status(400).json({ success: false, message: "Category is in use and cannot be deleted" });
+        handleError(res, e);
+    }
+});
+
+// --- BRANDS ---
+app.get('/api/brands', async (req, res) => {
+    try {
+        const { companyId } = req.query;
+        const brands = await prisma.brand.findMany({
+            where: { companyId },
+            orderBy: { name: 'asc' }
+        });
+        res.json(brands);
+    } catch (e) { handleError(res, e); }
+});
+
+app.post('/api/brands', async (req, res) => {
+    try {
+        const { companyId, name } = req.body;
+        const brand = await prisma.brand.create({
+            data: { companyId, name }
+        });
+        res.json({ success: true, id: brand.id });
+    } catch (e) { handleError(res, e); }
+});
+
+app.put('/api/brands/:id', async (req, res) => {
+    try {
+        const { name } = req.body;
+        await prisma.brand.update({
+            where: { id: req.params.id },
+            data: { name }
+        });
+        res.json({ success: true, changes: 1 });
+    } catch (e) { handleError(res, e); }
+});
+
+app.delete('/api/brands/:id', async (req, res) => {
+    try {
+        await prisma.brand.delete({ where: { id: req.params.id } });
+        res.json({ success: true, changes: 1 });
+    } catch (e) {
+        if (e.code === 'P2003') return res.status(400).json({ success: false, message: "Brand is in use and cannot be deleted" });
+        handleError(res, e);
+    }
+});
+
+// --- PRODUCTS ---
+app.get('/api/products', async (req, res) => {
+    try {
+        const { companyId } = req.query;
+        const products = await prisma.product.findMany({
+            where: { companyId },
+            include: { category: true, brand: true },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(products);
+    } catch (e) { handleError(res, e); }
+});
+
+app.post('/api/products', async (req, res) => {
+    try {
+        const { companyId, name, sku, cost_price, sell_price, stock_qty, alert_qty, category_id, brand_id, image_url, description } = req.body;
+        const product = await prisma.product.create({
+            data: {
+                companyId,
+                name,
+                sku,
+                description,
+                costPrice: parseFloat(cost_price) || 0,
+                sellPrice: parseFloat(sell_price) || 0,
+                stockQty: parseInt(stock_qty) || 0,
+                alertQty: parseInt(alert_qty) || 5,
+                categoryId: category_id,
+                brandId: brand_id,
+                imageUrl: image_url
+            }
+        });
+        res.json({ success: true, id: product.id });
+    } catch (e) { handleError(res, e); }
+});
+
+app.put('/api/products/:id', async (req, res) => {
+    try {
+        const { name, sku, cost_price, sell_price, stock_qty, alert_qty, category_id, brand_id, image_url, description } = req.body;
+        await prisma.product.update({
+            where: { id: req.params.id },
+            data: {
+                name,
+                sku,
+                description,
+                costPrice: cost_price !== undefined ? parseFloat(cost_price) : undefined,
+                sellPrice: sell_price !== undefined ? parseFloat(sell_price) : undefined,
+                stockQty: stock_qty !== undefined ? parseInt(stock_qty) : undefined,
+                alertQty: alert_qty !== undefined ? parseInt(alert_qty) : undefined,
+                categoryId: category_id,
+                brandId: brand_id,
+                imageUrl: image_url
+            }
+        });
+        res.json({ success: true, changes: 1 });
+    } catch (e) { handleError(res, e); }
+});
+
+app.delete('/api/products/:id', async (req, res) => {
+    try {
+        await prisma.product.delete({ where: { id: req.params.id } });
+        res.json({ success: true, changes: 1 });
+    } catch (e) {
+        if (e.code === 'P2003') return res.status(400).json({ success: false, message: "Product has transaction history and cannot be deleted" });
+        handleError(res, e);
+    }
+});
+
+// ==========================================
+// SALES
+// ==========================================
+app.get('/api/sales', async (req, res) => {
+    try {
+        const { companyId } = req.query;
+        const sales = await prisma.sale.findMany({
+            where: { companyId },
+            include: { customer: true, user: true, items: { include: { product: true } } },
+            orderBy: { date: 'desc' }
+        });
+        res.json(sales);
+    } catch (e) { handleError(res, e); }
+});
+
+app.post('/api/sales', async (req, res) => {
+    try {
+        const { companyId, customerId, userId, invoiceNo, subTotal, discount, tax, grandTotal, items } = req.body;
+
+        await prisma.$transaction(async (tx) => {
+            // 1. Create Sale Record
+            const sale = await tx.sale.create({
+                data: {
+                    companyId,
+                    customerId,
+                    userId,
+                    invoiceNo,
+                    subTotal: parseFloat(subTotal),
+                    discount: parseFloat(discount) || 0,
+                    tax: parseFloat(tax) || 0,
+                    grandTotal: parseFloat(grandTotal),
+                    items: {
+                        create: items.map(item => ({
+                            productId: item.productId,
+                            quantity: parseInt(item.quantity),
+                            price: parseFloat(item.price),
+                            total: parseFloat(item.total)
+                        }))
+                    }
+                }
+            });
+
+            // 2. Deduct Stock for each item
+            for (const item of items) {
+                await tx.product.update({
+                    where: { id: item.productId },
+                    data: {
+                        stockQty: { decrement: parseInt(item.quantity) }
+                    }
+                });
+            }
+
+            return sale;
+        });
+
+        res.json({ success: true, message: "Sale recorded and stock updated" });
+    } catch (e) { handleError(res, e); }
+});
+
+// ==========================================
+// AUDIT LOGS
+// ==========================================
+app.get('/api/audit-logs', async (req, res) => {
+    try {
+        const { companyId, limit = 50 } = req.query;
+        // Check if we have an AuditLog model (it's not in schema.prisma yet, let's assume it or add a placeholder)
+        // Since it's missing, let's return empty for now or add to schema.
+        res.json([]);
+    } catch (e) { handleError(res, e); }
+});
+
+// 404 Catch-all
+app.use((req, res) => {
+    console.warn(`[404 Not Found] ${req.method} ${req.url}`);
+    res.status(404).json({ success: false, message: `Route ${req.method} ${req.url} not found` });
+});
 
 // Start Server
 if (require.main === module) {

@@ -3,7 +3,7 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './components/Login';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
-import Products from './components/Products';
+import Inventory from './components/Inventory';
 import Purchase from './components/Purchase';
 import Sales from './components/Sales';
 import Customers from './components/Customers';
@@ -55,7 +55,7 @@ function App() {
             <Layout user={user} onLogout={handleLogout}>
                 <Routes>
                     <Route path="/" element={<Dashboard />} />
-                    <Route path="/products" element={<Products />} />
+                    <Route path="/inventory" element={<Inventory />} />
                     <Route path="/purchase" element={<Purchase />} />
                     <Route path="/sales" element={<Sales />} />
                     <Route path="/customers" element={<Customers />} />

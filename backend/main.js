@@ -1,342 +1,88 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
+const axios = require("axios");
 const db = require("./database/db_manager");
 const syncService = require("./services/sync_service");
 
-// IPC Handlers
-ipcMain.handle("trigger-sync", async () => {
+const API_URL = syncService.CLOUD_URL;
+
+// Helper: Generic API Call
+async function apiCall(method, endpoint, data = null, params = null) {
     try {
-        await syncService.syncData();
-        return { success: true, message: "Sync completed" };
+        // Ensure endpoint starts with / and API_URL doesn't end with /
+        const baseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+        const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+        const response = await axios({
+            method,
+            url: `${baseUrl}${cleanEndpoint}`,
+            data,
+            params
+        });
+        return response.data;
     } catch (error) {
-        return { success: false, message: error.message };
+        const fullUrl = error.config?.url || `${API_URL}${endpoint}`;
+        console.error(`API Error [${method} ${fullUrl}]:`, error.message);
+        return { success: false, message: error.response?.data?.message || error.message };
     }
-});
+}
 
-ipcMain.handle("login", (event, { username, password }) => {
-    return new Promise((resolve, reject) => {
-        db.get(
-            `SELECT u.id, u.company_id, u.username, u.role, u.fullname, u.is_active,
-                    c.name as company_name, r.id as role_id, r.name as role_name
-             FROM users u
-             LEFT JOIN companies c ON u.company_id = c.id
-             LEFT JOIN roles r ON r.name = u.role AND (r.company_id = u.company_id OR r.company_id IS NULL)
-             WHERE u.username = ? AND u.password = ? AND u.is_active = 1`,
-            [username, password],
-            (err, user) => {
-                if (err) {
-                    reject(err);
-                } else if (user) {
-                    // Get permissions for this user's role
-                    db.all(
-                        `SELECT module, can_view, can_create, can_edit, can_delete 
-                         FROM permissions WHERE role_id = ?`,
-                        [user.role_id],
-                        (err, permissions) => {
-                            if (err) {
-                                resolve({ success: true, user, permissions: [] });
-                            } else {
-                                resolve({ success: true, user, permissions });
-                            }
-                        }
-                    );
-                } else {
-                    resolve({ success: false, message: "Invalid username or password" });
-                }
-            }
-        );
-    });
-});
+// ==========================================
+// IPC HANDLERS (PURE CLOUD BRIDGE)
+// ==========================================
 
-// ============ COMPANY HANDLERS ============
-ipcMain.handle("get-companies", (event) => {
-    return new Promise((resolve, reject) => {
-        db.all("SELECT * FROM companies ORDER BY created_at DESC", (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
-    });
-});
+// Auth
+ipcMain.handle("login", (e, credentials) => apiCall('post', '/auth/login', credentials));
 
-ipcMain.handle("get-company", (event, companyId) => {
-    return new Promise((resolve, reject) => {
-        db.get("SELECT * FROM companies WHERE id = ?", [companyId], (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-        });
-    });
-});
+// Companies
+ipcMain.handle("get-companies", () => apiCall('get', '/companies'));
+ipcMain.handle("get-company", (e, id) => apiCall('get', `/companies/${id}`));
+ipcMain.handle("create-company", (e, data) => apiCall('post', '/companies', data));
+ipcMain.handle("update-company", (e, data) => apiCall('put', `/companies/${data.id}`, data));
+ipcMain.handle("delete-company", (e, id) => apiCall('delete', `/companies/${id}`));
 
-ipcMain.handle("create-company", (event, data) => {
-    return new Promise((resolve, reject) => {
-        const { name, address, phone, email, tax_no, currency_symbol } = data;
-        db.run(
-            `INSERT INTO companies (name, address, phone, email, tax_no, currency_symbol) 
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [name, address, phone, email, tax_no, currency_symbol || 'PKR'],
-            function (err) {
-                if (err) reject(err);
-                else resolve({ success: true, id: this.lastID });
-            }
-        );
-    });
-});
+// Users
+ipcMain.handle("get-users", (e, companyId) => apiCall('get', '/users', null, { companyId }));
+ipcMain.handle("create-user", (e, data) => apiCall('post', '/users', data));
+ipcMain.handle("update-user", (e, data) => apiCall('put', `/users/${data.id}`, data));
+ipcMain.handle("delete-user", (e, id) => apiCall('delete', `/users/${id}`));
 
-ipcMain.handle("update-company", (event, data) => {
-    return new Promise((resolve, reject) => {
-        const { id, name, address, phone, email, tax_no, currency_symbol, is_active } = data;
-        db.run(
-            `UPDATE companies SET name = ?, address = ?, phone = ?, email = ?, 
-             tax_no = ?, currency_symbol = ?, is_active = ? WHERE id = ?`,
-            [name, address, phone, email, tax_no, currency_symbol, is_active ?? 1, id],
-            function (err) {
-                if (err) reject(err);
-                else resolve({ success: true, changes: this.changes });
-            }
-        );
-    });
-});
+// Roles & Permissions
+ipcMain.handle("get-roles", (e, companyId) => apiCall('get', '/roles', null, { companyId }));
+ipcMain.handle("get-permissions", (e, roleId) => apiCall('get', '/permissions', null, { roleId }));
+ipcMain.handle("create-role", (e, data) => apiCall('post', '/roles', data));
+ipcMain.handle("update-role", (e, data) => apiCall('put', `/roles/${data.id}`, data));
+ipcMain.handle("delete-role", (e, id) => apiCall('delete', `/roles/${id}`));
 
-ipcMain.handle("delete-company", (event, id) => {
-    return new Promise((resolve, reject) => {
-        db.run("UPDATE companies SET is_active = 0 WHERE id = ?", [id], function (err) {
-            if (err) reject(err);
-            else resolve({ success: true, changes: this.changes });
-        });
-    });
-});
+// Inventory
+// Inventory - Categories
+ipcMain.handle("get-categories", (e, companyId) => apiCall('get', '/categories', null, { companyId }));
+ipcMain.handle("create-category", (e, data) => apiCall('post', '/categories', data));
+ipcMain.handle("update-category", (e, data) => apiCall('put', `/categories/${data.id}`, data));
+ipcMain.handle("delete-category", (e, id) => apiCall('delete', `/categories/${id}`));
 
-// ============ USER HANDLERS ============
-ipcMain.handle("get-users", (event, companyId) => {
-    return new Promise((resolve, reject) => {
-        let query = `SELECT u.*, c.name as company_name 
-                     FROM users u 
-                     LEFT JOIN companies c ON u.company_id = c.id`;
-        let params = [];
+// Inventory - Brands
+ipcMain.handle("get-brands", (e, companyId) => apiCall('get', '/brands', null, { companyId }));
+ipcMain.handle("create-brand", (e, data) => apiCall('post', '/brands', data));
+ipcMain.handle("update-brand", (e, data) => apiCall('put', `/brands/${data.id}`, data));
+ipcMain.handle("delete-brand", (e, id) => apiCall('delete', `/brands/${id}`));
 
-        if (companyId) {
-            query += " WHERE u.company_id = ?";
-            params.push(companyId);
-        }
-        query += " ORDER BY u.created_at DESC";
+// Inventory - Products
+ipcMain.handle("get-products", (e, companyId) => apiCall('get', '/products', null, { companyId }));
+ipcMain.handle("create-product", (e, data) => apiCall('post', '/products', data));
+ipcMain.handle("update-product", (e, data) => apiCall('put', `/products/${data.id}`, data));
+ipcMain.handle("delete-product", (e, id) => apiCall('delete', `/products/${id}`));
 
-        db.all(query, params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
-    });
-});
+// Sales
+ipcMain.handle("get-sales", (e, companyId) => apiCall('get', '/sales', null, { companyId }));
+ipcMain.handle("add-sale", (e, data) => apiCall('post', '/sales', data));
 
-ipcMain.handle("create-user", (event, data) => {
-    return new Promise((resolve, reject) => {
-        const { company_id, username, password, role, fullname } = data;
-        db.run(
-            `INSERT INTO users (company_id, username, password, role, fullname) 
-             VALUES (?, ?, ?, ?, ?)`,
-            [company_id, username, password, role, fullname],
-            function (err) {
-                if (err) {
-                    if (err.message.includes('UNIQUE')) {
-                        resolve({ success: false, message: 'Username already exists' });
-                    } else {
-                        reject(err);
-                    }
-                } else {
-                    resolve({ success: true, id: this.lastID });
-                }
-            }
-        );
-    });
-});
+// Audit Logs
+ipcMain.handle("get-audit-logs", (e, params) => apiCall('get', '/audit-logs', null, params));
+ipcMain.handle("create-audit-log", (e, data) => apiCall('post', '/audit-logs', data));
 
-ipcMain.handle("update-user", (event, data) => {
-    return new Promise((resolve, reject) => {
-        const { id, company_id, username, password, role, fullname, is_active } = data;
-
-        // If password is provided, update it; otherwise keep existing
-        if (password) {
-            db.run(
-                `UPDATE users SET company_id = ?, username = ?, password = ?, 
-                 role = ?, fullname = ?, is_active = ? WHERE id = ?`,
-                [company_id, username, password, role, fullname, is_active ?? 1, id],
-                function (err) {
-                    if (err) reject(err);
-                    else resolve({ success: true, changes: this.changes });
-                }
-            );
-        } else {
-            db.run(
-                `UPDATE users SET company_id = ?, username = ?, role = ?, 
-                 fullname = ?, is_active = ? WHERE id = ?`,
-                [company_id, username, role, fullname, is_active ?? 1, id],
-                function (err) {
-                    if (err) reject(err);
-                    else resolve({ success: true, changes: this.changes });
-                }
-            );
-        }
-    });
-});
-
-ipcMain.handle("delete-user", (event, id) => {
-    return new Promise((resolve, reject) => {
-        db.run("UPDATE users SET is_active = 0 WHERE id = ?", [id], function (err) {
-            if (err) reject(err);
-            else resolve({ success: true, changes: this.changes });
-        });
-    });
-});
-
-// ============ ROLE HANDLERS ============
-ipcMain.handle("get-roles", (event, companyId) => {
-    return new Promise((resolve, reject) => {
-        // Get system roles and company-specific roles
-        db.all(
-            `SELECT * FROM roles 
-             WHERE company_id IS NULL OR company_id = ? 
-             ORDER BY is_system DESC, name ASC`,
-            [companyId],
-            (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            }
-        );
-    });
-});
-
-ipcMain.handle("create-role", (event, data) => {
-    return new Promise((resolve, reject) => {
-        const { company_id, name, description, permissions } = data;
-        db.run(
-            `INSERT INTO roles (company_id, name, description, is_system) VALUES (?, ?, ?, 0)`,
-            [company_id, name, description],
-            function (err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    const roleId = this.lastID;
-                    // Insert permissions for this role
-                    if (permissions && permissions.length > 0) {
-                        const stmt = db.prepare(
-                            `INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete) 
-                             VALUES (?, ?, ?, ?, ?, ?)`
-                        );
-                        permissions.forEach(p => {
-                            stmt.run(roleId, p.module, p.can_view, p.can_create, p.can_edit, p.can_delete);
-                        });
-                        stmt.finalize();
-                    }
-                    resolve({ success: true, id: roleId });
-                }
-            }
-        );
-    });
-});
-
-ipcMain.handle("update-role", (event, data) => {
-    return new Promise((resolve, reject) => {
-        const { id, name, description, permissions } = data;
-        db.run(
-            `UPDATE roles SET name = ?, description = ? WHERE id = ? AND is_system = 0`,
-            [name, description, id],
-            function (err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    // Update permissions: delete old and insert new
-                    db.run("DELETE FROM permissions WHERE role_id = ?", [id], (delErr) => {
-                        if (permissions && permissions.length > 0) {
-                            const stmt = db.prepare(
-                                `INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete) 
-                                 VALUES (?, ?, ?, ?, ?, ?)`
-                            );
-                            permissions.forEach(p => {
-                                stmt.run(id, p.module, p.can_view, p.can_create, p.can_edit, p.can_delete);
-                            });
-                            stmt.finalize();
-                        }
-                        resolve({ success: true, changes: this.changes });
-                    });
-                }
-            }
-        );
-    });
-});
-
-ipcMain.handle("delete-role", (event, id) => {
-    return new Promise((resolve, reject) => {
-        // Only delete non-system roles
-        db.run("DELETE FROM roles WHERE id = ? AND is_system = 0", [id], function (err) {
-            if (err) reject(err);
-            else resolve({ success: true, changes: this.changes });
-        });
-    });
-});
-
-ipcMain.handle("get-permissions", (event, roleId) => {
-    return new Promise((resolve, reject) => {
-        db.all(
-            "SELECT * FROM permissions WHERE role_id = ?",
-            [roleId],
-            (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            }
-        );
-    });
-});
-
-// ============ AUDIT LOG HANDLERS ============
-ipcMain.handle("get-audit-logs", (event, { companyId, limit = 50 }) => {
-    return new Promise((resolve, reject) => {
-        let query = `SELECT a.*, u.username, u.fullname 
-                     FROM audit_logs a 
-                     LEFT JOIN users u ON a.user_id = u.id`;
-        let params = [];
-
-        if (companyId) {
-            query += " WHERE a.company_id = ?";
-            params.push(companyId);
-        }
-        query += " ORDER BY a.created_at DESC LIMIT ?";
-        params.push(limit);
-
-        db.all(query, params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
-    });
-});
-
-ipcMain.handle("create-audit-log", (event, data) => {
-    return new Promise((resolve, reject) => {
-        const { company_id, user_id, action, module, details } = data;
-        db.run(
-            `INSERT INTO audit_logs (company_id, user_id, action, module, details) 
-             VALUES (?, ?, ?, ?, ?)`,
-            [company_id, user_id, action, module, details],
-            function (err) {
-                if (err) reject(err);
-                else resolve({ success: true, id: this.lastID });
-            }
-        );
-    });
-});
-
-// Old handlers - TODO: Update these for new schema
-ipcMain.handle("get-sales", () => {
-    return new Promise((resolve, reject) => {
-        db.all("SELECT * FROM sales", (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
-    });
-});
-
-ipcMain.handle("add-sale", (event, data) => {
-    // TODO: Update for new schema
-    return { status: "ok" };
-});
+// Sync Trigger (No-op)
+ipcMain.handle("trigger-sync", async () => ({ success: true, message: "Apps is now pure cloud" }));
 
 // Create window
 function createWindow() {

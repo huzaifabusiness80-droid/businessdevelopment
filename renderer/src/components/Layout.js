@@ -8,7 +8,7 @@ import {
 // Define all menu items with their permission keys
 const ALL_MENU_ITEMS = [
     { key: 'dashboard', icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { key: 'products', icon: Package, label: 'Products', path: '/products' },
+    { key: 'inventory', icon: Package, label: 'Inventory', path: '/inventory' },
     { key: 'purchase', icon: Truck, label: 'Purchase', path: '/purchase' },
     { key: 'sales', icon: ShoppingCart, label: 'Sales', path: '/sales' },
     { key: 'customers', icon: Users, label: 'Customers', path: '/customers' },
@@ -60,8 +60,8 @@ const Layout = ({ children, user, onLogout }) => {
 
     useEffect(() => {
         // Filter menu items based on permissions
-        const isSuperAdmin = user?.role === 'super_admin';
-        const isAdmin = user?.role === 'admin';
+        const isSuperAdmin = user?.role?.toLowerCase() === 'super_admin' || user?.role === 'Super Admin';
+        const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.role === 'Admin';
 
         if (isSuperAdmin || isAdmin) {
             // Super admin and admin see all
