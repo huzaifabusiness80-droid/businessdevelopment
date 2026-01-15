@@ -54,11 +54,11 @@ function App() {
         <Router>
             <Layout user={user} onLogout={handleLogout}>
                 <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/inventory" element={<Inventory />} />
-                    <Route path="/purchase" element={<Purchase />} />
-                    <Route path="/sales" element={<Sales />} />
-                    <Route path="/customers" element={<Customers />} />
+                    <Route path="/" element={<Dashboard currentUser={user} />} />
+                    <Route path="/inventory" element={<Inventory currentUser={user} />} />
+                    <Route path="/purchase" element={<Purchase currentUser={user} />} />
+                    <Route path="/sales" element={<Sales currentUser={user} />} />
+                    <Route path="/customers" element={<Customers currentUser={user} />} />
                     <Route path="/suppliers" element={<Suppliers />} />
                     <Route path="/expenses" element={<Expenses />} />
                     <Route path="/reports" element={<Reports />} />
