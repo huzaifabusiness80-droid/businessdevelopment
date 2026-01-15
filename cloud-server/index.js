@@ -298,13 +298,22 @@ app.put('/api/users/:id', async (req, res) => {
 
 app.delete('/api/users/:id', async (req, res) => {
     try {
-        // Soft delete (deactivate) only
-        await prisma.user.update({
-            where: { id: req.params.id },
-            data: { isActive: false }
+        // Try hard delete first
+        await prisma.user.delete({
+            where: { id: req.params.id }
         });
-        res.json({ success: true, changes: 1, message: "User deactivated" });
-    } catch (e) { handleError(res, e); }
+        res.json({ success: true, changes: 1, message: "User deleted permanently" });
+    } catch (e) {
+        // If has records (Sale, etc), fall back to soft delete so we don't break database integrity
+        if (e.code === 'P2003') {
+            await prisma.user.update({
+                where: { id: req.params.id },
+                data: { isActive: false }
+            });
+            return res.json({ success: true, changes: 1, message: "User deactivated (contained related records)" });
+        }
+        handleError(res, e);
+    }
 });
 
 // ==========================================

@@ -45,10 +45,7 @@ ipcMain.handle("delete-company", (e, id) => apiCall('delete', `/companies/${id}`
 ipcMain.handle("get-users", (e, companyId) => apiCall('get', '/users', null, { companyId }));
 ipcMain.handle("create-user", (e, data) => apiCall('post', '/users', data));
 ipcMain.handle("update-user", (e, data) => apiCall('put', `/users/${data.id}`, data));
-ipcMain.handle("delete-user", async (e, id) => {
-    // Instead of deleting, we deactivate the user by setting is_active = 0
-    return apiCall('put', `/users/${id}`, { is_active: 0 });
-});
+ipcMain.handle("delete-user", (e, id) => apiCall('delete', `/users/${id}`));
 
 // Roles & Permissions
 ipcMain.handle("get-roles", (e, companyId) => apiCall('get', '/roles', null, { companyId }));
