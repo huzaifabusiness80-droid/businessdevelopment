@@ -153,10 +153,9 @@ app.get('/', (req, res) => {
 })
 app.get('/api/users', async (req, res) => {
     try {
-        const { companyId, includeInactive } = req.query;
-        const where = {
-            isActive: includeInactive === 'true' ? undefined : true
-        };
+        const { companyId, activeOnly } = req.query;
+        const where = {};
+        if (activeOnly === 'true') where.isActive = true;
         if (companyId) where.companyId = companyId;
 
         const users = await prisma.user.findMany({
@@ -299,22 +298,13 @@ app.put('/api/users/:id', async (req, res) => {
 
 app.delete('/api/users/:id', async (req, res) => {
     try {
-        // Try hard delete first
-        await prisma.user.delete({
-            where: { id: req.params.id }
+        // Soft delete (deactivate) only
+        await prisma.user.update({
+            where: { id: req.params.id },
+            data: { isActive: false }
         });
-        res.json({ success: true, changes: 1, message: "User deleted permanently" });
-    } catch (e) {
-        // If has records (Sale, etc), fall back to soft delete
-        if (e.code === 'P2003') {
-            await prisma.user.update({
-                where: { id: req.params.id },
-                data: { isActive: false }
-            });
-            return res.json({ success: true, changes: 1, message: "User deactivated (contained related records)" });
-        }
-        handleError(res, e);
-    }
+        res.json({ success: true, changes: 1, message: "User deactivated" });
+    } catch (e) { handleError(res, e); }
 });
 
 // ==========================================
@@ -446,6 +436,7 @@ app.get('/api/permissions', async (req, res) => {
 app.get('/api/categories', async (req, res) => {
     try {
         const { companyId } = req.query;
+        if (!companyId) return res.json([]);
         const categories = await prisma.category.findMany({
             where: { companyId },
             orderBy: { name: 'asc' }
@@ -489,6 +480,7 @@ app.delete('/api/categories/:id', async (req, res) => {
 app.get('/api/brands', async (req, res) => {
     try {
         const { companyId } = req.query;
+        if (!companyId) return res.json([]);
         const brands = await prisma.brand.findMany({
             where: { companyId },
             orderBy: { name: 'asc' }
@@ -532,6 +524,7 @@ app.delete('/api/brands/:id', async (req, res) => {
 app.get('/api/products', async (req, res) => {
     try {
         const { companyId } = req.query;
+        if (!companyId) return res.json([]);
         const products = await prisma.product.findMany({
             where: { companyId },
             include: { category: true, brand: true },
@@ -600,7 +593,12 @@ app.delete('/api/products/:id', async (req, res) => {
 // ==========================================
 app.get('/api/sales', async (req, res) => {
     try {
+        console.log(`[GET /api/sales] Query Params:`, req.query);
         const { companyId } = req.query;
+        if (!companyId) {
+            console.warn("[GET /api/sales] Missing companyId");
+            return res.json([]);
+        }
         const sales = await prisma.sale.findMany({
             where: { companyId },
             include: { customer: true, user: true, items: { include: { product: true } } },

@@ -1,7 +1,7 @@
 const db = require('../database/db_manager');
 const axios = require('axios');
 
-const CLOUD_URL = 'http://localhost:2000/api'; // Match cloud-server port
+const CLOUD_URL = 'https://businessdevelopment-ten.vercel.app/api'; // Vercel Cloud Server
 
 class SyncService {
     constructor() {

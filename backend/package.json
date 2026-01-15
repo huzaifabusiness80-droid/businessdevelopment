@@ -1,36 +1,59 @@
 {
-    "name": "businessmanagementapp",
-    "version": "1.0.0",
-    "description": "",
-    "main": "main.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "electron": "electron .",
-        "build": "react-scripts build",
-        "dist": "electron-builder"
+  "name": "businessmanagementapp",
+  "version": "1.0.0",
+  "description": "Business Management Desktop Application",
+  "main": "main.js",
+  "author": "Huzaifa",
+  "license": "ISC",
+  "type": "commonjs",
+
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "electron": "electron .",
+    "build": "react-scripts build",
+    "dist": "electron-builder --win --x64"
+  },
+
+  "dependencies": {
+    "axios": "^1.13.2",
+    "sqlite3": "^5.1.7"
+  },
+
+  "devDependencies": {
+    "electron": "^39.2.7",
+    "electron-builder": "^26.4.0"
+  },
+
+  "build": {
+    "appId": "com.businessmanagementapp.bms",
+    "productName": "BusinessManagementApp",
+
+    "directories": {
+      "buildResources": "assets",
+      "output": "dist"
     },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "type": "commonjs",
-    "dependencies": {
-        "axios": "^1.13.2",
-        "sqlite3": "^5.1.7"
+
+    "asar": true,
+
+    "files": [
+      "**/*",
+      "!node_modules/.cache/**/*"
+    ],
+
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico",
+
+      "signAndEditExecutable": false,
+      "forceCodeSigning": false,
+      "verifyUpdateCodeSignature": false
     },
-    "devDependencies": {
-        "electron": "^39.2.7",
-        "electron-builder": "^26.4.0"
-    },
-    "build": {
-        "appId": "com.businessmanagementapp.bms",
-        "productName": "BusinessManagementApp",
-        "directories": {
-            "buildResources": "assets",
-            "output": "dist"
-        },
-        "win": {
-            "target": "nsis",
-            "icon": "assets/icon.ico"
-        }
+
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false
     }
+  }
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MoreVertical } from 'lucide-react';
+import { MoreVertical, TrendingUp, FolderKanban, Wallet, UserPlus } from 'lucide-react';
 import {
     LineChart as RechartsLineChart,
     Line,
@@ -34,40 +34,50 @@ const CircularProgress = ({ percentage, color }) => {
     );
 };
 
-// Stat Card Component
-const StatCard = ({ title, value, change, changeType, percentage, color }) => (
-    <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-        <div className="flex items-start justify-between">
-            <div>
-                <p className="text-xs text-gray-400 mb-1">{title}</p>
-                <p className="text-xl font-bold text-gray-800">{value}</p>
-                <div className="flex items-center mt-2 space-x-2">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded ${changeType === 'up' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-500'}`}>
-                        {changeType === 'up' ? '+' : '-'}{change}
+// Stat Card Component with Gradient Backgrounds
+const StatCard = ({ title, value, change, changeType, percentage, color, gradient, icon: Icon }) => (
+    <div className={`group relative rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden ${gradient}`}>
+        {/* Background Pattern */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-white/5 rounded-full"></div>
+
+        <div className="relative flex items-start justify-between">
+            <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-3">
+                    {Icon && <Icon size={18} className="text-white/80" />}
+                    <p className="text-xs text-white/80 font-bold uppercase tracking-wider">{title}</p>
+                </div>
+                <p className="text-3xl font-bold text-white mb-4">{value}</p>
+                <div className="flex items-center space-x-2">
+                    <span className={`text-xs font-bold px-3 py-1.5 rounded-lg backdrop-blur-sm ${changeType === 'up' ? 'bg-white/20 text-white' : 'bg-black/20 text-white'}`}>
+                        {changeType === 'up' ? '↑' : '↓'} {change}
                     </span>
-                    <span className="text-xs text-gray-400">From last Week</span>
+                    <span className="text-xs text-white/70 font-medium">From last Week</span>
                 </div>
             </div>
-            <CircularProgress percentage={percentage} color={color} />
+            <div className="relative flex items-center justify-center">
+                <CircularProgress percentage={percentage} color="rgba(255,255,255,0.9)" />
+                <span className="absolute text-sm font-bold text-white">{percentage}%</span>
+            </div>
         </div>
     </div>
 );
 
-// Custom Tooltip Component
+// Custom Tooltip Component with Orange Accent
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white shadow-xl rounded-xl px-4 py-3 border border-gray-100">
-                <p className="text-xs text-gray-500 mb-2 font-medium">{label}</p>
+            <div className="bg-gray-900 shadow-2xl rounded-xl px-4 py-3 border border-orange-500/30">
+                <p className="text-xs text-orange-400 mb-2 font-bold uppercase tracking-wide">{label}</p>
                 <div className="flex items-center space-x-2 mb-1.5">
                     <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
-                    <span className="text-sm font-semibold text-gray-800">
+                    <span className="text-sm font-bold text-white">
                         PKR {payload[0]?.value?.toLocaleString()}
                     </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-violet-500"></div>
-                    <span className="text-sm font-semibold text-gray-800">
+                    <div className="w-2.5 h-2.5 rounded-full bg-orange-500"></div>
+                    <span className="text-sm font-bold text-white">
                         PKR {payload[1]?.value?.toLocaleString()}
                     </span>
                 </div>
@@ -77,7 +87,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-// VIP Dynamic Line Chart Component using Recharts
+// VIP Dynamic Line Chart Component using Recharts with Orange Theme
 const LineChart = () => {
     const data = [
         { day: 'Mon', profit: 35000, expenses: 28000 },
@@ -90,17 +100,17 @@ const LineChart = () => {
     ];
 
     return (
-        <div style={{ width: '100%', height: 250 }}>
+        <div style={{ width: '100%', height: 280 }}>
             <ResponsiveContainer>
                 <ComposedChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 10 }}>
                     <defs>
                         <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
                         </linearGradient>
                         <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2} />
-                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                            <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#f97316" stopOpacity={0.05} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -108,16 +118,16 @@ const LineChart = () => {
                         dataKey="day"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#9ca3af', fontSize: 12 }}
+                        tick={{ fill: '#9ca3af', fontSize: 13, fontWeight: 600 }}
                     />
                     <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#9ca3af', fontSize: 11 }}
+                        tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 500 }}
                         tickFormatter={(value) => `${value / 1000}k`}
                         domain={[20000, 100000]}
                     />
-                    <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#cbd5e1', strokeDasharray: '5 5' }} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#f97316', strokeWidth: 2, strokeDasharray: '5 5' }} />
 
                     {/* Area fills */}
                     <Area
@@ -140,15 +150,15 @@ const LineChart = () => {
                         stroke="#10b981"
                         strokeWidth={3}
                         dot={false}
-                        activeDot={{ r: 6, fill: '#10b981', stroke: 'white', strokeWidth: 3 }}
+                        activeDot={{ r: 7, fill: '#10b981', stroke: 'white', strokeWidth: 3 }}
                     />
                     <Line
                         type="monotone"
                         dataKey="expenses"
-                        stroke="#8b5cf6"
+                        stroke="#f97316"
                         strokeWidth={3}
                         dot={false}
-                        activeDot={{ r: 6, fill: '#8b5cf6', stroke: 'white', strokeWidth: 3 }}
+                        activeDot={{ r: 7, fill: '#f97316', stroke: 'white', strokeWidth: 3 }}
                     />
                 </ComposedChart>
             </ResponsiveContainer>
@@ -161,38 +171,70 @@ const Dashboard = () => {
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-                <div className="flex bg-gray-100 rounded-xl p-1">
-                    <button className="px-5 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium shadow-sm">Weekly</button>
-                    <button className="px-5 py-2 text-gray-500 text-sm font-medium hover:bg-white rounded-lg transition-colors">Monthly</button>
-                    <button className="px-5 py-2 text-gray-500 text-sm font-medium hover:bg-white rounded-lg transition-colors">Yearly</button>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Dashboard</h1>
+                <div className="flex bg-gray-100 rounded-xl p-1.5 shadow-sm">
+                    <button className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg text-sm font-bold shadow-lg shadow-orange-500/30 transition-all hover:shadow-xl">Weekly</button>
+                    <button className="px-6 py-2.5 text-gray-600 text-sm font-medium hover:bg-white rounded-lg transition-all">Monthly</button>
+                    <button className="px-6 py-2.5 text-gray-600 text-sm font-medium hover:bg-white rounded-lg transition-all">Yearly</button>
                 </div>
             </div>
 
-            {/* Stats Cards */}
+            {/* Stats Cards with Vibrant Colors */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                <StatCard title="Total Profit" value="PKR 25,127.00" change="75%" changeType="up" percentage={75} color="#3b82f6" />
-                <StatCard title="Total Projects" value="520" change="32%" changeType="up" percentage={60} color="#10b981" />
-                <StatCard title="Total Expenses" value="PKR 12,120.00" change="60%" changeType="down" percentage={45} color="#8b5cf6" />
-                <StatCard title="New Customer" value="124" change="5%" changeType="up" percentage={30} color="#f97316" />
+                <StatCard
+                    title="Total Profit"
+                    value="PKR 25,127"
+                    change="75%"
+                    changeType="up"
+                    percentage={75}
+                    gradient="bg-gradient-to-br from-orange-500 to-orange-600"
+                    icon={TrendingUp}
+                />
+                <StatCard
+                    title="Total Projects"
+                    value="520"
+                    change="32%"
+                    changeType="up"
+                    percentage={60}
+                    gradient="bg-gradient-to-br from-emerald-500 to-emerald-600"
+                    icon={FolderKanban}
+                />
+                <StatCard
+                    title="Total Expenses"
+                    value="PKR 12,120"
+                    change="60%"
+                    changeType="down"
+                    percentage={45}
+                    gradient="bg-gradient-to-br from-indigo-500 to-indigo-600"
+                    icon={Wallet}
+                />
+                <StatCard
+                    title="New Customer"
+                    value="124"
+                    change="5%"
+                    changeType="up"
+                    percentage={30}
+                    gradient="bg-gradient-to-br from-pink-500 to-pink-600"
+                    icon={UserPlus}
+                />
             </div>
 
             {/* Main Content Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Overview Chart */}
-                <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-lg font-bold text-gray-800">Overview</h2>
+                {/* Overview Chart with Enhanced Design */}
+                <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-bold text-gray-900">Overview</h2>
                         <div className="flex items-center space-x-6">
                             <div className="flex items-center space-x-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
-                                <span className="text-sm text-gray-500">Profit</span>
+                                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                <span className="text-sm font-semibold text-gray-600">Profit</span>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
-                                <span className="text-sm text-gray-500">Expenses</span>
+                                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                                <span className="text-sm font-semibold text-gray-600">Expenses</span>
                             </div>
-                            <button className="text-gray-400 hover:text-gray-600">
+                            <button className="text-gray-400 hover:text-orange-600 transition-colors">
                                 <MoreVertical size={18} />
                             </button>
                         </div>
@@ -200,28 +242,31 @@ const Dashboard = () => {
                     <LineChart />
                 </div>
 
-                {/* Top Customers */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                    <div className="flex items-center justify-between mb-5">
-                        <h2 className="text-lg font-bold text-gray-800">Top Customer</h2>
-                        <button className="text-gray-400 hover:text-gray-600">
+                {/* Top Customers with Colorful Avatars */}
+                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-bold text-gray-900">Top Customer</h2>
+                        <button className="text-gray-400 hover:text-orange-600 transition-colors">
                             <MoreVertical size={18} />
                         </button>
                     </div>
-                    <div className="space-y-5">
+                    <div className="space-y-4">
                         {[
-                            { name: 'Benny Chagurian', role: 'CEO of Tech Innovations', color: 'from-amber-400 to-orange-500' },
-                            { name: 'Chynita Hereen', role: 'Marketing Director', color: 'from-pink-400 to-rose-500' },
-                            { name: 'David Yersh', role: 'Loyal Customer', color: 'from-cyan-400 to-blue-500' },
-                            { name: 'Hayder Jahan', role: 'Project Manager', color: 'from-violet-400 to-purple-500' },
+                            { name: 'Benny Chagurian', role: 'CEO of Tech Innovations', gradient: 'from-orange-400 to-orange-600', initials: 'BC' },
+                            { name: 'Chynita Hereen', role: 'Marketing Director', gradient: 'from-pink-400 to-pink-600', initials: 'CH' },
+                            { name: 'David Yersh', role: 'Loyal Customer', gradient: 'from-cyan-400 to-cyan-600', initials: 'DY' },
+                            { name: 'Hayder Jahan', role: 'Project Manager', gradient: 'from-purple-400 to-purple-600', initials: 'HJ' },
                         ].map((customer, i) => (
-                            <div key={i} className="flex items-center space-x-3">
-                                <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${customer.color} flex items-center justify-center text-white font-bold text-sm shadow-sm`}>
-                                    {customer.name.split(' ').map(n => n[0]).join('')}
+                            <div key={i} className="group flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">
+                                <div className="relative">
+                                    <div className={`absolute inset-0 bg-gradient-to-br ${customer.gradient} rounded-full blur-md opacity-40 group-hover:opacity-60 transition-opacity`}></div>
+                                    <div className={`relative w-12 h-12 rounded-full bg-gradient-to-br ${customer.gradient} flex items-center justify-center text-white font-bold text-sm shadow-lg`}>
+                                        {customer.initials}
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-semibold text-gray-700">{customer.name}</p>
-                                    <p className="text-xs text-gray-400">{customer.role}</p>
+                                <div className="flex-1">
+                                    <p className="text-sm font-bold text-gray-800">{customer.name}</p>
+                                    <p className="text-xs text-gray-500 font-medium">{customer.role}</p>
                                 </div>
                             </div>
                         ))}
@@ -229,17 +274,17 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Invoice Table */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-gray-800">Invoice</h2>
-                    <button className="text-gray-400 hover:text-gray-600">
+            {/* Invoice Table with Modern Design */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
+                    <h2 className="text-xl font-bold text-gray-900">Invoice</h2>
+                    <button className="text-gray-400 hover:text-orange-600 transition-colors">
                         <MoreVertical size={18} />
                     </button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 text-gray-400 font-medium text-xs uppercase">
+                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-600 font-semibold text-xs uppercase">
                             <tr>
                                 <th className="px-6 py-4">Location</th>
                                 <th className="px-6 py-4">Role</th>
@@ -257,14 +302,15 @@ const Dashboard = () => {
                                 { location: 'Sunnyvale Park', role: 'Customer Support', date: 'September 15th, 2025', name: 'Hassan Ali', status: 'Finished', amount: 'PKR 260.00' },
                                 { location: 'Maplewood Avenue', role: 'Product Owner', date: 'November 30th, 2025', name: 'David Lane', status: 'Cancel', amount: 'PKR 410.00' },
                             ].map((row, i) => (
-                                <tr key={i} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-medium text-gray-700">{row.location}</td>
-                                    <td className="px-6 py-4 text-gray-500">{row.role}</td>
+                                <tr key={i} className="hover:bg-orange-50/30 transition-colors group">
+                                    <td className="px-6 py-4 font-bold text-gray-800">{row.location}</td>
+                                    <td className="px-6 py-4 text-gray-600 font-medium">{row.role}</td>
                                     <td className="px-6 py-4 text-gray-500">{row.date}</td>
-                                    <td className="px-6 py-4 text-gray-700">{row.name}</td>
+                                    <td className="px-6 py-4 font-semibold text-gray-800">{row.name}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center space-x-1.5 text-xs font-medium ${row.status === 'Finished' ? 'text-emerald-600' :
-                                            row.status === 'Pending' ? 'text-orange-500' : 'text-red-500'
+                                        <span className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold ${row.status === 'Finished' ? 'bg-emerald-100 text-emerald-700' :
+                                            row.status === 'Pending' ? 'bg-orange-100 text-orange-600' :
+                                                'bg-red-100 text-red-600'
                                             }`}>
                                             <span className={`w-1.5 h-1.5 rounded-full ${row.status === 'Finished' ? 'bg-emerald-500' :
                                                 row.status === 'Pending' ? 'bg-orange-500' : 'bg-red-500'
@@ -272,9 +318,9 @@ const Dashboard = () => {
                                             <span>{row.status}</span>
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 font-medium text-gray-700">{row.amount}</td>
+                                    <td className="px-6 py-4 font-bold text-gray-900">{row.amount}</td>
                                     <td className="px-6 py-4">
-                                        <button className="text-gray-400 hover:text-gray-600">•••</button>
+                                        <button className="text-gray-400 hover:text-orange-600 font-bold transition-colors">•••</button>
                                     </td>
                                 </tr>
                             ))}
@@ -282,7 +328,7 @@ const Dashboard = () => {
                     </table>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

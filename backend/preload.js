@@ -46,6 +46,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     createAuditLog: (data) => ipcRenderer.invoke('create-audit-log', data),
 
     // Legacy APIs (for existing components)
-    getSales: () => ipcRenderer.invoke('get-sales'),
+    getSales: (companyId) => ipcRenderer.invoke('get-sales', companyId),
     addSale: (data) => ipcRenderer.invoke('add-sale', data),
 });

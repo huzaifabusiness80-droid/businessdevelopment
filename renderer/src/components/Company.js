@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, Users, Shield, ClipboardList, Plus, Search, Edit2, Trash2, X, Eye, EyeOff, Check, ChevronDown } from 'lucide-react';
+import { Building2, Users, Shield, ClipboardList, Plus, Search, Edit2, Trash2, X, Eye, EyeOff, Check, ChevronDown, Info } from 'lucide-react';
 
 const tabs = [
     { id: 'profile', label: 'Company Profile', icon: Building2 },
@@ -87,6 +87,10 @@ const CompanyProfile = ({ currentUser, isSuperAdmin }) => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [selectedCompany, setSelectedCompany] = useState(null);
+    const [companyUsers, setCompanyUsers] = useState([]);
+    const [loadingUsers, setLoadingUsers] = useState(false);
     const [formData, setFormData] = useState({
         name: '', address: '', phone: '', email: '', tax_no: '', currency_symbol: 'PKR'
     });
@@ -137,6 +141,21 @@ const CompanyProfile = ({ currentUser, isSuperAdmin }) => {
         setShowModal(true);
     };
 
+    const openDetailModal = async (company) => {
+        setSelectedCompany(company);
+        setShowDetailModal(true);
+        setLoadingUsers(true);
+        try {
+            if (window.electronAPI) {
+                const users = await window.electronAPI.getUsers(company.id);
+                setCompanyUsers(users || []);
+            }
+        } catch (err) {
+            window.alert('Error loading users: ' + err.message);
+        }
+        setLoadingUsers(false);
+    };
+
     if (loading) return <LoadingSpinner />;
 
     // Super Admin View - Companies List
@@ -153,20 +172,30 @@ const CompanyProfile = ({ currentUser, isSuperAdmin }) => {
 
                 <div className="grid gap-4">
                     {companies.map((c) => (
-                        <div key={c.id} className="flex items-center justify-between p-5 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-100 hover:border-emerald-200 hover:shadow-md transition-all">
+                        <div key={c.id} className="flex items-center justify-between p-5 bg-gradient-to-r from-orange-50/50 to-white rounded-xl border border-gray-100 hover:border-orange-200 hover:shadow-lg transition-all group">
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-emerald-200">
-                                    {c.name?.charAt(0).toUpperCase()}
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl blur-md opacity-40"></div>
+                                    <div className="relative w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                                        {c.name?.charAt(0).toUpperCase()}
+                                    </div>
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-gray-800">{c.name}</h3>
+                                    <h3 className="font-bold text-gray-900 text-lg">{c.name}</h3>
                                     <p className="text-sm text-gray-500">{c.email || c.phone || 'No contact info'}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <StatusBadge active={c.is_active} />
-                                <button onClick={() => openModal(c)} className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
-                                    <Edit2 size={18} />
+                            <div className="flex items-center gap-2">
+
+                                <button
+                                    onClick={() => openDetailModal(c)}
+                                    className="p-2.5 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all duration-300"
+                                    title="View Details & Users"
+                                >
+                                    <Info size={20} />
+                                </button>
+                                <button onClick={() => openModal(c)} className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300">
+                                    <Edit2 size={20} />
                                 </button>
                             </div>
                         </div>
@@ -174,6 +203,7 @@ const CompanyProfile = ({ currentUser, isSuperAdmin }) => {
                     {companies.length === 0 && <EmptyState message="No companies found" />}
                 </div>
 
+                {/* Edit Company Modal */}
                 {showModal && (
                     <Modal title={formData.id ? 'Edit Company' : 'New Company'} onClose={() => setShowModal(false)}>
                         <form onSubmit={handleSave} className="space-y-5">
@@ -189,6 +219,107 @@ const CompanyProfile = ({ currentUser, isSuperAdmin }) => {
                             <FormTextarea label="Address" value={formData.address} onChange={v => setFormData({ ...formData, address: v })} placeholder="Full address..." />
                             <ModalFooter onCancel={() => setShowModal(false)} saving={saving} />
                         </form>
+                    </Modal>
+                )}
+
+                {/* Company Detail Modal */}
+                {showDetailModal && selectedCompany && (
+                    <Modal title="Company Details" onClose={() => setShowDetailModal(false)} size="lg">
+                        <div className="space-y-6">
+                            {/* Company Info Card */}
+                            <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-2xl p-6 border border-orange-200">
+                                <div className="flex items-start gap-5">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl blur-lg opacity-50"></div>
+                                        <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white font-bold text-3xl shadow-xl">
+                                            {selectedCompany.name?.charAt(0).toUpperCase()}
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedCompany.name}</h2>
+                                        <div className="grid grid-cols-2 gap-3 text-sm">
+                                            {selectedCompany.email && (
+                                                <div>
+                                                    <span className="text-gray-500 font-medium">Email:</span>
+                                                    <p className="text-gray-800 font-semibold">{selectedCompany.email}</p>
+                                                </div>
+                                            )}
+                                            {selectedCompany.phone && (
+                                                <div>
+                                                    <span className="text-gray-500 font-medium">Phone:</span>
+                                                    <p className="text-gray-800 font-semibold">{selectedCompany.phone}</p>
+                                                </div>
+                                            )}
+                                            {selectedCompany.tax_no && (
+                                                <div>
+                                                    <span className="text-gray-500 font-medium">Tax No:</span>
+                                                    <p className="text-gray-800 font-semibold">{selectedCompany.tax_no}</p>
+                                                </div>
+                                            )}
+                                            {selectedCompany.currency_symbol && (
+                                                <div>
+                                                    <span className="text-gray-500 font-medium">Currency:</span>
+                                                    <p className="text-gray-800 font-semibold">{selectedCompany.currency_symbol}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {selectedCompany.address && (
+                                            <div className="mt-3">
+                                                <span className="text-gray-500 font-medium text-sm">Address:</span>
+                                                <p className="text-gray-800">{selectedCompany.address}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Users Section */}
+                            <div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                        <Users size={20} className="text-orange-600" />
+                                        Company Users
+                                    </h3>
+                                    <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-bold">
+                                        {companyUsers.length} Users
+                                    </span>
+                                </div>
+
+                                {loadingUsers ? (
+                                    <LoadingSpinner />
+                                ) : companyUsers.length > 0 ? (
+                                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                                        {companyUsers.map((user) => (
+                                            <div key={user.id} className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-orange-200 hover:shadow-md transition-all group">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="relative">
+                                                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full blur-md opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                                                        <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                                                            {user.fullname?.charAt(0).toUpperCase()}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-gray-900">{user.fullname}</p>
+                                                        <p className="text-sm text-gray-500">@{user.username}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="px-3 py-1 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 rounded-lg text-xs font-bold capitalize border border-blue-200">
+                                                        {user.role?.replace('_', ' ')}
+                                                    </span>
+                                                    <StatusBadge active={user.is_active} />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+                                        <Users size={48} className="mx-auto text-gray-300 mb-3" />
+                                        <p className="text-gray-500 font-medium">No users registered in this company yet</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </Modal>
                 )}
             </>
