@@ -1,70 +1,357 @@
-import React from 'react';
-import { Plus, Search, MoreHorizontal } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+    Plus, Search, Edit2, Trash2, User, Phone,
+    MapPin, Mail, CreditCard, TrendingUp, Users,
+    DollarSign, X, Check, Loader2, MoreVertical
+} from 'lucide-react';
 
-const Customers = () => {
+// Reusable Components matching the design system
+const StatCard = ({ title, value, icon: Icon, color }) => (
+    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
+        <div className="flex items-center justify-between mb-4">
+            <div className={`p-3 rounded-xl bg-${color}-50 text-${color}-600`}>
+                <Icon size={24} />
+            </div>
+            <div className={`text-xs font-bold px-2 py-1 rounded-full bg-orange-50 text-orange-600 flex items-center gap-1`}>
+                <TrendingUp size={12} /> +12%
+            </div>
+        </div>
+        <div>
+            <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
+            <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
+        </div>
+    </div>
+);
+
+const Modal = ({ title, children, onClose, size = 'md' }) => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className={`bg-white rounded-3xl shadow-2xl w-full ${size === 'lg' ? 'max-w-4xl' : 'max-w-md'} overflow-hidden animate-in zoom-in-95 duration-200`}>
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+                <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors"><X size={20} /></button>
+            </div>
+            <div className="p-6">{children}</div>
+        </div>
+    </div>
+);
+
+const Customers = ({ currentUser }) => {
+    const [customers, setCustomers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [formData, setFormData] = useState({ name: '', phone: '', email: '', address: '', creditLimit: 0 });
+
+    useEffect(() => { loadCustomers(); }, [currentUser]);
+
+    const loadCustomers = async () => {
+        setLoading(true);
+        try {
+            if (window.electronAPI) {
+                const data = await window.electronAPI.getCustomers(currentUser?.company_id);
+                setCustomers(data || []);
+            }
+        } catch (err) {
+            console.error('Error loading customers:', err);
+        }
+        setLoading(false);
+    };
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            const data = { ...formData, companyId: currentUser?.company_id };
+            let result;
+            if (formData.id) {
+                result = await window.electronAPI.updateCustomer(data);
+            } else {
+                result = await window.electronAPI.createCustomer(data);
+            }
+
+            if (result?.success === false) {
+                window.alert(result.message);
+            } else {
+                setShowModal(false);
+                loadCustomers();
+            }
+        } catch (err) {
+            window.alert('Error saving customer: ' + err.message);
+        }
+        setSaving(false);
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this customer?')) return;
+        try {
+            const result = await window.electronAPI.deleteCustomer(id);
+            if (result?.success === false) {
+                window.alert(result.message);
+            } else {
+                loadCustomers();
+            }
+        } catch (err) {
+            window.alert('Error deleting customer: ' + err.message);
+        }
+    };
+
+    const openModal = (customer = null) => {
+        setFormData(customer ? { ...customer } : { name: '', phone: '', email: '', address: '', creditLimit: 0 });
+        setShowModal(true);
+    };
+
+    const filtered = customers.filter(c =>
+        c.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.phone?.includes(search)
+    );
+
+    const totalBalance = customers.reduce((acc, c) => acc + (c.balance || 0), 0);
+
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-800">Customers</h1>
-                <button className="flex items-center space-x-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 transition-colors shadow-sm">
-                    <Plus size={18} />
-                    <span>Add Customer</span>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Customer Management</h1>
+                    <p className="text-gray-500 mt-1">Manage your clients, track balances and credit limits.</p>
+                </div>
+                <button
+                    onClick={() => openModal()}
+                    className="flex items-center justify-center space-x-2 px-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-bold hover:shadow-lg hover:shadow-orange-200 hover:-translate-y-0.5 transition-all active:scale-95 shadow-md group"
+                >
+                    <div className="p-1 px-1.5 bg-white/20 rounded-lg group-hover:rotate-90 transition-transform duration-300">
+                        <Plus size={18} />
+                    </div>
+                    <span>Add New Customer</span>
                 </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-gray-100">
-                    <div className="relative w-72">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <input type="text" className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100" placeholder="Search customers..." />
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard title="Total Customers" value={customers.length} icon={Users} color="orange" />
+                <StatCard title="Total Receivables" value={`PKR ${totalBalance.toLocaleString()}`} icon={DollarSign} color="emerald" />
+                <StatCard title="Active Credit" value={`PKR ${(totalBalance * 0.8).toLocaleString()}`} icon={CreditCard} color="blue" />
+                <StatCard title="New This Month" value="12" icon={TrendingUp} color="purple" />
+            </div>
+
+            {/* Main Content Card */}
+            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-100/50 overflow-hidden">
+                <div className="p-8 border-b border-gray-50 bg-gray-50/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="relative group w-full md:w-96">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={20} />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full pl-12 pr-6 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all shadow-sm"
+                            placeholder="Search by name or phone number..."
+                        />
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button onClick={loadCustomers} className="p-3 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all border border-gray-200 bg-white">
+                            <Loader2 size={20} className={loading ? 'animate-spin' : ''} />
+                        </button>
                     </div>
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 text-gray-500 font-medium">
-                            <tr>
-                                <th className="px-6 py-4">Name</th>
-                                <th className="px-6 py-4">Phone</th>
-                                <th className="px-6 py-4">Address</th>
-                                <th className="px-6 py-4">Total Purchases</th>
-                                <th className="px-6 py-4">Balance</th>
-                                <th className="px-6 py-4">Actions</th>
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-gray-50/50">
+                                <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Customer</th>
+                                <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Contact Info</th>
+                                <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Address</th>
+                                <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Balance</th>
+                                <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {[
-                                { name: 'Ali Traders', phone: '0300-1234567', address: 'Karachi', purchases: 45000, balance: 15000 },
-                                { name: 'XYZ Company', phone: '0321-9876543', address: 'Lahore', purchases: 32000, balance: 0 },
-                                { name: 'ABC Store', phone: '0333-5555555', address: 'Islamabad', purchases: 28000, balance: 8500 },
-                                { name: 'Tech Solutions', phone: '0345-1111111', address: 'Rawalpindi', purchases: 15000, balance: 0 },
-                            ].map((customer, i) => (
-                                <tr key={i} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-xs">
-                                                {customer.name.charAt(0)}
+                        <tbody className="divide-y divide-gray-50">
+                            {loading ? (
+                                <tr><td colSpan="5" className="px-8 py-20 text-center text-gray-400 font-medium">Loading customers...</td></tr>
+                            ) : filtered.length > 0 ? (
+                                filtered.map((customer) => (
+                                    <tr key={customer.id} className="hover:bg-orange-50/30 transition-colors group">
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center space-x-4">
+                                                <div className="relative">
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl blur-md opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                                                    <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                                                        {customer.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-gray-900 group-hover:text-orange-600 transition-colors">{customer.name}</p>
+                                                    <p className="text-xs text-gray-400 font-medium mt-0.5">ID: {customer.id.slice(-6).toUpperCase()}</p>
+                                                </div>
                                             </div>
-                                            <span className="font-medium text-gray-700">{customer.name}</span>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="space-y-1.5">
+                                                <div className="flex items-center text-gray-600 text-sm font-medium gap-2">
+                                                    <Phone size={14} className="text-gray-400" /> {customer.phone || 'N/A'}
+                                                </div>
+                                                <div className="flex items-center text-gray-400 text-xs font-medium gap-2">
+                                                    <Mail size={14} /> {customer.email || 'No email provided'}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6 max-w-xs">
+                                            <div className="flex items-center text-gray-600 text-sm gap-2">
+                                                <MapPin size={16} className="text-orange-400 shrink-0" />
+                                                <span className="truncate">{customer.address || 'No address set'}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="space-y-1">
+                                                <p className={`text-base font-bold ${customer.balance > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                                                    PKR {(customer.balance || 0).toLocaleString()}
+                                                </p>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Limit: PKR {(customer.creditLimit || 0).toLocaleString()}</p>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center justify-end space-x-2">
+                                                <button
+                                                    onClick={() => openModal(customer)}
+                                                    className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 border border-transparent hover:border-blue-100"
+                                                >
+                                                    <Edit2 size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(customer.id)}
+                                                    className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 border border-transparent hover:border-red-100"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="5" className="px-8 py-32 text-center">
+                                        <div className="max-w-xs mx-auto">
+                                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <User size={32} className="text-gray-200" />
+                                            </div>
+                                            <h3 className="text-gray-900 font-bold text-lg mb-1">No Customers Found</h3>
+                                            <p className="text-gray-400 text-sm">Add your first customer to start tracking sales and balances.</p>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-600">{customer.phone}</td>
-                                    <td className="px-6 py-4 text-gray-500">{customer.address}</td>
-                                    <td className="px-6 py-4 text-gray-700">PKR {customer.purchases.toLocaleString()}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={`font-semibold ${customer.balance > 0 ? 'text-red-500' : 'text-emerald-600'}`}>
-                                            PKR {customer.balance.toLocaleString()}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <button className="text-gray-400 hover:text-gray-600"><MoreHorizontal size={18} /></button>
-                                    </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            {/* Modal for Add/Edit */}
+            {showModal && (
+                <Modal title={formData.id ? 'Update Customer Details' : 'Register New Customer'} onClose={() => setShowModal(false)} size="lg">
+                    <form onSubmit={handleSave} className="space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-6">
+                                <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                    <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
+                                    Basic Information
+                                </h4>
+                                <div className="space-y-1.5 text-left">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Full Name *</label>
+                                    <div className="relative">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <input
+                                            required
+                                            type="text"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium"
+                                            placeholder="e.g. Ali Khan"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5 text-left">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Phone Number</label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <input
+                                            type="text"
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium"
+                                            placeholder="03xx-xxxxxxx"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5 text-left">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Email Address</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <input
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium"
+                                            placeholder="customer@email.com"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                    <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
+                                    Additional Details
+                                </h4>
+                                <div className="space-y-1.5 text-left">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Credit Limit (PKR)</label>
+                                    <div className="relative">
+                                        <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <input
+                                            type="number"
+                                            value={formData.creditLimit}
+                                            onChange={(e) => setFormData({ ...formData, creditLimit: e.target.value })}
+                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium"
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5 text-left">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Shipping/Billing Address</label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-4 top-4 text-gray-400" size={18} />
+                                        <textarea
+                                            rows="4"
+                                            value={formData.address}
+                                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium"
+                                            placeholder="Store address, city, etc."
+                                        ></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                            <button
+                                type="button"
+                                onClick={() => setShowModal(false)}
+                                className="px-6 py-3.5 text-gray-500 font-bold hover:text-gray-700 transition-all rounded-2xl border border-transparent hover:bg-gray-100"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={saving}
+                                className="px-8 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-2xl hover:shadow-lg hover:shadow-orange-200 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {saving ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                                {formData.id ? 'Update Customer' : 'Add Customer'}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
+            )}
         </div>
     );
 };

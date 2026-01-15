@@ -181,6 +181,65 @@ app.get('/api/users', async (req, res) => {
     } catch (e) { handleError(res, e); }
 });
 
+// ==========================================
+// CUSTOMERS
+// ==========================================
+app.get('/api/customers', async (req, res) => {
+    try {
+        const { companyId } = req.query;
+        if (!companyId) return res.json([]);
+        const customers = await prisma.customer.findMany({
+            where: { companyId },
+            orderBy: { name: 'asc' }
+        });
+        res.json(customers);
+    } catch (e) { handleError(res, e); }
+});
+
+app.post('/api/customers', async (req, res) => {
+    try {
+        const { companyId, name, phone, email, address, creditLimit } = req.body;
+        const customer = await prisma.customer.create({
+            data: {
+                companyId,
+                name,
+                phone,
+                email,
+                address,
+                creditLimit: parseFloat(creditLimit) || 0
+            }
+        });
+        res.json({ success: true, id: customer.id, ...customer });
+    } catch (e) { handleError(res, e); }
+});
+
+app.put('/api/customers/:id', async (req, res) => {
+    try {
+        const { name, phone, email, address, creditLimit } = req.body;
+        await prisma.customer.update({
+            where: { id: req.params.id },
+            data: {
+                name,
+                phone,
+                email,
+                address,
+                creditLimit: parseFloat(creditLimit) || 0
+            }
+        });
+        res.json({ success: true, changes: 1 });
+    } catch (e) { handleError(res, e); }
+});
+
+app.delete('/api/customers/:id', async (req, res) => {
+    try {
+        await prisma.customer.delete({ where: { id: req.params.id } });
+        res.json({ success: true, changes: 1 });
+    } catch (e) {
+        if (e.code === 'P2003') return res.status(400).json({ success: false, message: "Customer has transaction history and cannot be deleted" });
+        handleError(res, e);
+    }
+});
+
 app.post('/api/users', async (req, res) => {
     try {
         const { company_id, username, password, role, fullname } = req.body;

@@ -18,6 +18,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     updateUser: (data) => ipcRenderer.invoke('update-user', data),
     deleteUser: (id) => ipcRenderer.invoke('delete-user', id),
 
+    // Customer APIs
+    getCustomers: (companyId) => ipcRenderer.invoke('get-customers', companyId),
+    createCustomer: (data) => ipcRenderer.invoke('create-customer', data),
+    updateCustomer: (data) => ipcRenderer.invoke('update-customer', data),
+    deleteCustomer: (id) => ipcRenderer.invoke('delete-customer', id),
+
     // Role & Permission APIs
     getRoles: (companyId) => ipcRenderer.invoke('get-roles', companyId),
     createRole: (data) => ipcRenderer.invoke('create-role', data),
