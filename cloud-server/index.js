@@ -298,6 +298,74 @@ app.delete('/api/vendors/:id', async (req, res) => {
     }
 });
 
+// ==========================================
+// PURCHASES
+// ==========================================
+app.get('/api/purchases', async (req, res) => {
+    try {
+        const { companyId } = req.query;
+        if (!companyId) return res.json([]);
+        const purchases = await prisma.purchase.findMany({
+            where: { companyId },
+            include: { vendor: true, items: { include: { product: true } } },
+            orderBy: { date: 'desc' }
+        });
+        res.json(purchases);
+    } catch (e) { handleError(res, e); }
+});
+
+app.post('/api/purchases', async (req, res) => {
+    try {
+        const { companyId, vendorId, invoiceNo, totalAmount, paidAmount, status, items } = req.body;
+
+        const purchase = await prisma.$transaction(async (tx) => {
+            // 1. Create Purchase
+            const p = await tx.purchase.create({
+                data: {
+                    companyId,
+                    vendorId,
+                    invoiceNo,
+                    totalAmount: parseFloat(totalAmount),
+                    paidAmount: parseFloat(paidAmount) || 0,
+                    status: status || 'RECEIVED',
+                    items: {
+                        create: items.map(item => ({
+                            productId: item.productId,
+                            quantity: parseInt(item.quantity),
+                            unitCost: parseFloat(item.unitCost),
+                            total: parseFloat(item.total)
+                        }))
+                    }
+                }
+            });
+
+            // 2. Update Product Stock and Cost Price
+            for (const item of items) {
+                await tx.product.update({
+                    where: { id: item.productId },
+                    data: {
+                        stockQty: { increment: parseInt(item.quantity) },
+                        costPrice: parseFloat(item.unitCost) // Update last cost price
+                    }
+                });
+            }
+
+            // 3. Update Vendor Balance (Payable)
+            const balanceToIncr = parseFloat(totalAmount) - (parseFloat(paidAmount) || 0);
+            if (balanceToIncr !== 0) {
+                await tx.vendor.update({
+                    where: { id: vendorId },
+                    data: { balance: { increment: balanceToIncr } }
+                });
+            }
+
+            return p;
+        });
+
+        res.json({ success: true, id: purchase.id, ...purchase });
+    } catch (e) { handleError(res, e); }
+});
+
 app.post('/api/users', async (req, res) => {
     try {
         const { company_id, username, password, role, fullname } = req.body;

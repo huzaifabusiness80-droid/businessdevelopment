@@ -89,6 +89,10 @@ ipcMain.handle("delete-product", (e, id) => apiCall('delete', `/products/${id}`)
 ipcMain.handle("get-sales", (e, companyId) => apiCall('get', '/sales', null, { companyId }));
 ipcMain.handle("add-sale", (e, data) => apiCall('post', '/sales', data));
 
+// Purchases
+ipcMain.handle("get-purchases", (e, companyId) => apiCall('get', '/purchases', null, { companyId }));
+ipcMain.handle("add-purchase", (e, data) => apiCall('post', '/purchases', data));
+
 // Audit Logs
 ipcMain.handle("get-audit-logs", (e, params) => apiCall('get', '/audit-logs', null, params));
 ipcMain.handle("create-audit-log", (e, data) => apiCall('post', '/audit-logs', data));

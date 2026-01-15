@@ -60,4 +60,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Legacy APIs (for existing components)
     getSales: (companyId) => ipcRenderer.invoke('get-sales', companyId),
     addSale: (data) => ipcRenderer.invoke('add-sale', data),
+
+    // Purchase APIs
+    getPurchases: (companyId) => ipcRenderer.invoke('get-purchases', companyId),
+    addPurchase: (data) => ipcRenderer.invoke('add-purchase', data),
 });
