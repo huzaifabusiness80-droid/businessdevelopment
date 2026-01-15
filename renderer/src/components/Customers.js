@@ -6,31 +6,41 @@ import {
 } from 'lucide-react';
 
 // Reusable Components matching the design system
-const StatCard = ({ title, value, icon: Icon, color }) => (
-    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
-        <div className="flex items-center justify-between mb-4">
-            <div className={`p-3 rounded-xl bg-${color}-50 text-${color}-600`}>
-                <Icon size={24} />
-            </div>
-            <div className={`text-xs font-bold px-2 py-1 rounded-full bg-orange-50 text-orange-600 flex items-center gap-1`}>
-                <TrendingUp size={12} /> +12%
+// Premium Stat Card Component
+const StatCard = ({ title, value, icon: Icon, color }) => {
+    const colors = {
+        orange: 'from-orange-500 to-orange-600 shadow-orange-200',
+        emerald: 'from-emerald-500 to-emerald-600 shadow-emerald-200',
+        red: 'from-red-500 to-red-600 shadow-red-200',
+        blue: 'from-blue-500 to-blue-600 shadow-blue-200',
+        purple: 'from-purple-500 to-purple-600 shadow-purple-200',
+        gray: 'from-gray-500 to-gray-600 shadow-gray-200'
+    };
+
+    return (
+        <div className={`relative overflow-hidden bg-gradient-to-br ${colors[color]} p-6 rounded-[2rem] text-white shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group`}>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-8 -mt-8 blur-2xl"></div>
+            <div className="relative flex items-center justify-between">
+                <div>
+                    <p className="text-white/70 text-xs font-bold uppercase tracking-wider mb-1">{title}</p>
+                    <h3 className="text-2xl font-bold">{value}</h3>
+                </div>
+                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
+                    <Icon size={24} />
+                </div>
             </div>
         </div>
-        <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
-            <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
-        </div>
-    </div>
-);
+    );
+};
 
 const Modal = ({ title, children, onClose, size = 'md' }) => (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-        <div className={`bg-white rounded-3xl shadow-2xl w-full ${size === 'lg' ? 'max-w-4xl' : 'max-w-md'} overflow-hidden animate-in zoom-in-95 duration-200`}>
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+        <div className={`bg-white rounded-[2.5rem] shadow-2xl w-full ${size === 'lg' ? 'max-w-4xl' : 'max-w-xl'} overflow-hidden animate-in zoom-in-95 duration-200`}>
+            <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                 <h3 className="text-xl font-bold text-gray-900">{title}</h3>
                 <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors"><X size={20} /></button>
             </div>
-            <div className="p-6">{children}</div>
+            <div className="p-8 max-h-[85vh] overflow-y-auto scrollbar-hide">{children}</div>
         </div>
     </div>
 );
@@ -120,7 +130,7 @@ const Customers = ({ currentUser }) => {
                     onClick={() => openModal()}
                     className="flex items-center justify-center space-x-2 px-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-bold hover:shadow-lg hover:shadow-orange-200 hover:-translate-y-0.5 transition-all active:scale-95 shadow-md group"
                 >
-                    <div className="p-1 px-1.5 bg-white/20 rounded-lg group-hover:rotate-90 transition-transform duration-300">
+                    <div className="p-1 px-1.5 bg-white/20 rounded-lg group-hover:rotate-12 transition-transform duration-300">
                         <Plus size={18} />
                     </div>
                     <span>Add New Customer</span>

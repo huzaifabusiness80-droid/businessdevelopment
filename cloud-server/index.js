@@ -240,6 +240,64 @@ app.delete('/api/customers/:id', async (req, res) => {
     }
 });
 
+// ==========================================
+// VENDORS (SUPPLIERS)
+// ==========================================
+app.get('/api/vendors', async (req, res) => {
+    try {
+        const { companyId } = req.query;
+        if (!companyId) return res.json([]);
+        const vendors = await prisma.vendor.findMany({
+            where: { companyId },
+            orderBy: { name: 'asc' }
+        });
+        res.json(vendors);
+    } catch (e) { handleError(res, e); }
+});
+
+app.post('/api/vendors', async (req, res) => {
+    try {
+        const { companyId, name, phone, email, address } = req.body;
+        const vendor = await prisma.vendor.create({
+            data: {
+                companyId,
+                name,
+                phone,
+                email,
+                address,
+                balance: 0
+            }
+        });
+        res.json({ success: true, id: vendor.id, ...vendor });
+    } catch (e) { handleError(res, e); }
+});
+
+app.put('/api/vendors/:id', async (req, res) => {
+    try {
+        const { name, phone, email, address } = req.body;
+        await prisma.vendor.update({
+            where: { id: req.params.id },
+            data: {
+                name,
+                phone,
+                email,
+                address
+            }
+        });
+        res.json({ success: true, changes: 1 });
+    } catch (e) { handleError(res, e); }
+});
+
+app.delete('/api/vendors/:id', async (req, res) => {
+    try {
+        await prisma.vendor.delete({ where: { id: req.params.id } });
+        res.json({ success: true, changes: 1 });
+    } catch (e) {
+        if (e.code === 'P2003') return res.status(400).json({ success: false, message: "Supplier has transaction history and cannot be deleted" });
+        handleError(res, e);
+    }
+});
+
 app.post('/api/users', async (req, res) => {
     try {
         const { company_id, username, password, role, fullname } = req.body;

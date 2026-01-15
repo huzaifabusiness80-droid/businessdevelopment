@@ -53,6 +53,12 @@ ipcMain.handle("create-customer", (e, data) => apiCall('post', '/customers', dat
 ipcMain.handle("update-customer", (e, data) => apiCall('put', `/customers/${data.id}`, data));
 ipcMain.handle("delete-customer", (e, id) => apiCall('delete', `/customers/${id}`));
 
+// Vendors (Suppliers)
+ipcMain.handle("get-vendors", (e, companyId) => apiCall('get', '/vendors', null, { companyId }));
+ipcMain.handle("create-vendor", (e, data) => apiCall('post', '/vendors', data));
+ipcMain.handle("update-vendor", (e, data) => apiCall('put', `/vendors/${data.id}`, data));
+ipcMain.handle("delete-vendor", (e, id) => apiCall('delete', `/vendors/${id}`));
+
 // Roles & Permissions
 ipcMain.handle("get-roles", (e, companyId) => apiCall('get', '/roles', null, { companyId }));
 ipcMain.handle("get-permissions", (e, roleId) => apiCall('get', '/permissions', null, { roleId }));

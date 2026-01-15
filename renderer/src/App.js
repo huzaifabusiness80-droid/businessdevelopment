@@ -59,9 +59,9 @@ function App() {
                     <Route path="/purchase" element={<Purchase currentUser={user} />} />
                     <Route path="/sales" element={<Sales currentUser={user} />} />
                     <Route path="/customers" element={<Customers currentUser={user} />} />
-                    <Route path="/suppliers" element={<Suppliers />} />
-                    <Route path="/expenses" element={<Expenses />} />
-                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/suppliers" element={<Suppliers currentUser={user} />} />
+                    <Route path="/expenses" element={<Expenses currentUser={user} />} />
+                    <Route path="/reports" element={<Reports currentUser={user} />} />
                     <Route path="/users" element={<Users />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/company" element={<Company />} />
