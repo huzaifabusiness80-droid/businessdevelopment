@@ -1,6 +1,7 @@
 {
   "scripts": {
     "build": "npm --prefix renderer run build && npm --prefix backend run copy-build",
+    "vercel-build": "npm --prefix cloud-server run postinstall",
     "copy-build": "npm --prefix backend run copy-build"
   },
   "devDependencies": {
