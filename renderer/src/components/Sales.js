@@ -8,24 +8,23 @@ import {
 // Premium Stat Card Component
 const StatCard = ({ title, value, icon: Icon, color }) => {
     const colors = {
-        orange: 'from-orange-500 to-orange-600 shadow-orange-200',
-        emerald: 'from-emerald-500 to-emerald-600 shadow-emerald-200',
-        blue: 'from-blue-500 to-blue-600 shadow-blue-200',
-        purple: 'from-purple-500 to-purple-600 shadow-purple-200',
-        red: 'from-red-500 to-red-600 shadow-red-200',
-        gray: 'from-gray-500 to-gray-600 shadow-gray-200'
+        orange: 'bg-white border-l-4 border-l-blue-500',
+        emerald: 'bg-white border-l-4 border-l-emerald-500',
+        blue: 'bg-white border-l-4 border-l-blue-600',
+        purple: 'bg-white border-l-4 border-l-indigo-500',
+        red: 'bg-white border-l-4 border-l-rose-500',
+        gray: 'bg-white border-l-4 border-l-slate-400'
     };
 
     return (
-        <div className={`relative overflow-hidden bg-gradient-to-br ${colors[color]} p-6 rounded-[2rem] text-white shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group`}>
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-8 -mt-8 blur-2xl"></div>
+        <div className={`relative overflow-hidden ${colors[color]} p-5 rounded-xl border border-slate-200 shadow-sm transition-all duration-200 hover:shadow-md group`}>
             <div className="relative flex items-center justify-between">
                 <div>
-                    <p className="text-white/70 text-xs font-bold uppercase tracking-wider mb-1">{title}</p>
-                    <h3 className="text-2xl font-bold">{value}</h3>
+                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">{title}</p>
+                    <h3 className="text-xl font-bold text-slate-800">{value}</h3>
                 </div>
-                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md transition-transform group-hover:rotate-12">
-                    <Icon size={24} />
+                <div className="p-2.5 bg-slate-50 text-slate-400 rounded-lg group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                    <Icon size={20} />
                 </div>
             </div>
         </div>
@@ -153,69 +152,69 @@ const Sales = ({ currentUser }) => {
             </div>
 
             {/* Sales Table Section */}
-            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-50/50 overflow-hidden">
-                <div className="p-8 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gray-50/30">
-                    <div className="relative w-full md:w-96">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/20">
+                    <div className="relative w-full md:w-80">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
-                            className="w-full pl-12 pr-4 py-4 bg-white border border-transparent rounded-[1.5rem] text-sm focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all"
-                            placeholder="Find invoice by number..."
+                            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all"
+                            placeholder="Find invoice..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="flex items-center justify-center space-x-2 px-8 py-4 bg-orange-500 text-white rounded-[1.5rem] font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-200 active:scale-95"
+                        className="flex items-center justify-center space-x-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all active:scale-95 shadow-sm shadow-blue-200"
                     >
-                        <Plus size={20} />
+                        <Plus size={18} />
                         <span>Create New Sale</span>
                     </button>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-gray-50/50 text-gray-400 font-bold text-xs uppercase tracking-widest">
+                        <thead className="bg-slate-50/80 text-slate-400 font-bold text-[10px] uppercase tracking-widest border-b border-slate-100">
                             <tr>
-                                <th className="px-8 py-5">Invoice Details</th>
-                                <th className="px-8 py-5">Customer info</th>
-                                <th className="px-8 py-5">Items</th>
-                                <th className="px-8 py-5">Grand Total</th>
-                                <th className="px-8 py-5">Status</th>
-                                <th className="px-8 py-5 text-right">Actions</th>
+                                <th className="px-6 py-4">Invoice Details</th>
+                                <th className="px-6 py-4">Customer info</th>
+                                <th className="px-6 py-4">Items</th>
+                                <th className="px-6 py-4">Grand Total</th>
+                                <th className="px-6 py-4">Status</th>
+                                <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {filteredSales.map((sale) => (
-                                <tr key={sale.id} className="hover:bg-orange-50/20 transition-all group">
-                                    <td className="px-8 py-6">
-                                        <div className="font-bold text-gray-900 group-hover:text-orange-600 transition-colors">{sale.invoiceNo}</div>
-                                        <div className="text-xs text-gray-400 font-medium">{new Date(sale.date).toLocaleString()}</div>
+                                <tr key={sale.id} className="hover:bg-slate-50/50 transition-all group border-b border-slate-50 last:border-0">
+                                    <td className="px-6 py-4">
+                                        <div className="font-bold text-sm text-slate-800 group-hover:text-blue-600 transition-colors uppercase">{sale.invoiceNo}</div>
+                                        <div className="text-[10px] text-slate-400 font-bold mt-1">{new Date(sale.date).toLocaleString()}</div>
                                     </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
                                                 <User size={14} />
                                             </div>
-                                            <span className="font-bold text-gray-700">{sale.customer?.name || 'Walk-in Customer'}</span>
+                                            <span className="font-bold text-xs text-slate-600">{sale.customer?.name || 'Walk-in Customer'}</span>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-6">
-                                        <span className="px-3 py-1 bg-gray-100 rounded-full text-xs font-bold text-gray-500">
-                                            {sale.items?.length || 0} Products
+                                    <td className="px-6 py-4">
+                                        <span className="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-bold text-slate-500 uppercase">
+                                            {sale.items?.length || 0} Items
                                         </span>
                                     </td>
-                                    <td className="px-8 py-6 font-bold text-gray-900">PKR {sale.grandTotal?.toLocaleString()}</td>
-                                    <td className="px-8 py-6">
-                                        <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    <td className="px-6 py-4 font-bold text-sm text-slate-800">PKR {sale.grandTotal?.toLocaleString()}</td>
+                                    <td className="px-6 py-4">
+                                        <span className="inline-flex items-center space-x-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[10px] font-bold uppercase tracking-wider border border-emerald-100">
+                                            <span className="w-1 h-1 rounded-full bg-emerald-500"></span>
                                             <span>Paid</span>
                                         </span>
                                     </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <button className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all">
-                                            <MoreHorizontal size={18} />
+                                    <td className="px-6 py-4 text-right">
+                                        <button className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                                            <MoreHorizontal size={16} />
                                         </button>
                                     </td>
                                 </tr>
@@ -235,34 +234,34 @@ const Sales = ({ currentUser }) => {
 
             {/* Professional POS Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="bg-[#F8FAFC] rounded-[3.5rem] shadow-2xl w-full max-w-7xl h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300 border border-white/20">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-[2px] animate-in fade-in duration-300">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-7xl h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300 border border-slate-200">
                         {/* Header */}
-                        <div className="px-10 py-6 bg-white border-b border-gray-100 flex items-center justify-between">
+                        <div className="px-8 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 bg-orange-500 text-white rounded-2xl shadow-lg shadow-orange-100">
-                                    <ShoppingCart size={24} />
+                                <div className="p-2 bg-blue-600 text-white rounded-lg shadow-sm">
+                                    <ShoppingCart size={20} />
                                 </div>
                                 <div>
-                                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Terminal POS</h2>
-                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Operator: {currentUser?.fullname || 'Counter 1'}</p>
+                                    <h2 className="text-lg font-bold text-slate-800 tracking-tight">Terminal POS</h2>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Operator: {currentUser?.fullname || 'Counter 1'}</p>
                                 </div>
                             </div>
-                            <button onClick={() => setIsModalOpen(false)} className="p-4 bg-gray-50 hover:bg-red-50 hover:text-red-500 rounded-3xl transition-all text-gray-400 border border-transparent hover:border-red-100">
-                                <X size={24} />
+                            <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
+                                <X size={20} />
                             </button>
                         </div>
 
                         <div className="flex-1 flex overflow-hidden">
                             {/* Left: Product Selection */}
-                            <div className="flex-1 p-8 overflow-y-auto space-y-8 scrollbar-hide border-r border-gray-100">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Search Product</label>
+                            <div className="flex-1 p-6 overflow-y-auto space-y-6 scrollbar-hide border-r border-slate-100">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Search Product</label>
                                         <div className="relative">
-                                            <Package className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                            <Package className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                             <select
-                                                className="w-full pl-12 pr-4 py-4 bg-white border border-transparent rounded-[1.5rem] focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 shadow-sm transition-all font-bold outline-none appearance-none cursor-pointer"
+                                                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all font-bold text-sm outline-none appearance-none cursor-pointer"
                                                 value={selectedProduct}
                                                 onChange={(e) => setSelectedProduct(e.target.value)}
                                             >
@@ -275,13 +274,13 @@ const Sales = ({ currentUser }) => {
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Quantity</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Quantity</label>
                                             <input
                                                 type="number"
                                                 min="1"
-                                                className="w-full px-4 py-4 bg-white border border-transparent rounded-[1.5rem] focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 shadow-sm transition-all font-bold outline-none text-center"
+                                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all font-bold text-sm outline-none text-center"
                                                 value={qty}
                                                 onChange={(e) => setQty(e.target.value)}
                                             />
@@ -289,7 +288,7 @@ const Sales = ({ currentUser }) => {
                                         <div className="flex items-end">
                                             <button
                                                 onClick={addToCart}
-                                                className="w-full py-4 bg-blue-600 text-white rounded-[1.5rem] font-black hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-95"
+                                                className="w-full py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 shadow-sm shadow-blue-100 transition-all active:scale-95 text-sm"
                                             >
                                                 ADD TO CART
                                             </button>
@@ -298,45 +297,45 @@ const Sales = ({ currentUser }) => {
                                 </div>
 
                                 {/* Modern Cart Table */}
-                                <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden min-h-[400px]">
+                                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden min-h-[400px]">
                                     <table className="w-full text-left">
-                                        <thead className="bg-gray-50/50 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                                        <thead className="bg-slate-50/80 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">
                                             <tr>
-                                                <th className="px-8 py-5">Product</th>
-                                                <th className="px-8 py-5 text-center">Unit Price</th>
-                                                <th className="px-8 py-5 text-center">Qty</th>
-                                                <th className="px-8 py-5 text-right">Total</th>
-                                                <th className="px-8 py-5 text-right"></th>
+                                                <th className="px-6 py-4">Product</th>
+                                                <th className="px-6 py-4 text-center">Unit Price</th>
+                                                <th className="px-6 py-4 text-center">Qty</th>
+                                                <th className="px-6 py-4 text-right">Total</th>
+                                                <th className="px-6 py-4 text-right"></th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-50">
+                                        <tbody className="divide-y divide-slate-50">
                                             {cart.map((item, idx) => (
-                                                <tr key={idx} className="group hover:bg-gray-50/50 transition-all">
-                                                    <td className="px-8 py-5">
-                                                        <div className="font-bold text-gray-900">{item.name}</div>
-                                                        <div className="text-[10px] text-gray-400">SKU: {item.sku || 'N/A'}</div>
+                                                <tr key={idx} className="group hover:bg-slate-50/50 transition-all">
+                                                    <td className="px-6 py-4">
+                                                        <div className="font-bold text-slate-800 text-sm">{item.name}</div>
+                                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">SKU: {item.sku || 'N/A'}</div>
                                                     </td>
-                                                    <td className="px-8 py-5 text-center font-bold text-gray-600">PKR {item.price.toLocaleString()}</td>
-                                                    <td className="px-8 py-5">
-                                                        <div className="w-20 mx-auto px-3 py-1.5 bg-gray-100 rounded-xl text-center font-black text-xs text-gray-900 border border-gray-200">
+                                                    <td className="px-6 py-4 text-center font-bold text-slate-600 text-xs">PKR {item.price.toLocaleString()}</td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="w-16 mx-auto px-2 py-1 bg-slate-100 rounded text-center font-bold text-xs text-slate-700 border border-slate-200">
                                                             {item.quantity}
                                                         </div>
                                                     </td>
-                                                    <td className="px-8 py-5 text-right font-black text-gray-900">PKR {item.total.toLocaleString()}</td>
-                                                    <td className="px-8 py-5 text-right">
-                                                        <button onClick={() => removeFromCart(item.productId)} className="p-2 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
-                                                            <Trash2 size={16} />
+                                                    <td className="px-6 py-4 text-right font-bold text-slate-800 text-sm">PKR {item.total.toLocaleString()}</td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <button onClick={() => removeFromCart(item.productId)} className="p-1.5 text-slate-300 hover:text-rose-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
+                                                            <Trash2 size={14} />
                                                         </button>
                                                     </td>
                                                 </tr>
                                             ))}
                                             {cart.length === 0 && (
                                                 <tr>
-                                                    <td colSpan="5" className="px-8 py-20 text-center">
-                                                        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-gray-200">
-                                                            <ShoppingCart size={32} className="text-gray-300" />
+                                                    <td colSpan="5" className="px-6 py-20 text-center">
+                                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-slate-200">
+                                                            <ShoppingCart size={24} className="text-slate-300" />
                                                         </div>
-                                                        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Cart is empty</p>
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cart is empty</p>
                                                     </td>
                                                 </tr>
                                             )}
@@ -346,72 +345,60 @@ const Sales = ({ currentUser }) => {
                             </div>
 
                             {/* Right: Summary & Checkout */}
-                            <div className="w-[400px] p-8 flex flex-col space-y-8 bg-white border-l border-gray-100">
-                                <div className="space-y-6">
-                                    <div className="bg-gray-50 rounded-[2rem] p-6 space-y-4">
-                                        <div className="flex items-center gap-3 mb-2 px-1">
-                                            <User size={18} className="text-orange-500" />
-                                            <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Customer Details</span>
+                            <div className="w-[360px] p-6 flex flex-col space-y-6 bg-slate-50 border-l border-slate-200">
+                                <div className="space-y-4">
+                                    <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 space-y-3">
+                                        <div className="flex items-center gap-2 mb-1 px-0.5">
+                                            <User size={14} className="text-blue-500" />
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Customer Details</span>
                                         </div>
                                         <select
-                                            className="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:border-orange-500 transition-all outline-none font-bold text-sm shadow-sm appearance-none"
+                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:border-blue-500 transition-all outline-none font-bold text-xs appearance-none"
                                             value={selectedCustomer}
                                             onChange={(e) => setSelectedCustomer(e.target.value)}
                                         >
                                             <option value="">Walk-in Customer</option>
-                                            {customers.map(c => <option key={c.id} value={c.id}>{c.name} ({c.phone})</option>)}
+                                            {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                         </select>
                                     </div>
 
-                                    <div className="space-y-4 px-2">
-                                        <div className="flex justify-between items-center text-sm font-bold text-gray-500">
+                                    <div className="space-y-3 px-1">
+                                        <div className="flex justify-between items-center text-xs font-bold text-slate-500 uppercase tracking-tight">
                                             <span>Subtotal</span>
-                                            <span className="text-gray-900 font-black">PKR {subTotal.toLocaleString()}</span>
+                                            <span className="text-slate-800">PKR {subTotal.toLocaleString()}</span>
                                         </div>
-                                        <div className="flex justify-between items-center text-sm font-bold text-gray-500">
-                                            <span>Discount Amount</span>
-                                            <div className="relative w-32">
+                                        <div className="flex justify-between items-center text-xs font-bold text-slate-500 uppercase tracking-tight">
+                                            <span>Discount</span>
+                                            <div className="relative w-24">
                                                 <input
                                                     type="number"
-                                                    className="w-full px-4 py-2 bg-gray-50 border border-transparent rounded-xl text-right font-black text-orange-600 focus:bg-white focus:border-orange-500 outline-none transition-all"
+                                                    className="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-right font-bold text-blue-600 focus:border-blue-500 outline-none transition-all text-sm"
                                                     value={discount}
                                                     onChange={(e) => setDiscount(e.target.value)}
                                                 />
                                             </div>
                                         </div>
-                                        <div className="h-px bg-gray-100 my-6"></div>
-                                        <div className="flex justify-between items-end">
-                                            <div className="space-y-1">
-                                                <span className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] block">Grand Total</span>
-                                                <span className="text-4xl font-black text-emerald-600 tracking-tighter italic">
-                                                    <span className="text-lg mr-1 not-italic">PKR</span>
+                                        <div className="h-px bg-slate-200 my-4"></div>
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] block">Grand Total</span>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-xs font-bold text-slate-400 uppercase">PKR</span>
+                                                <span className="text-3xl font-bold text-slate-800 tracking-tighter">
                                                     {grandTotal.toLocaleString()}
                                                 </span>
-                                            </div>
-                                            <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600">
-                                                <TrendingUp size={24} />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="mt-auto space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <button className="py-4 bg-gray-100 text-gray-500 font-black rounded-2xl hover:bg-gray-200 transition-all active:scale-95 flex items-center justify-center gap-2">
-                                            <Printer size={18} />
-                                            HOLD
-                                        </button>
-                                        <button className="py-4 bg-orange-100 text-orange-600 font-black rounded-2xl hover:bg-orange-200 transition-all active:scale-95 flex items-center justify-center gap-2">
-                                            DISCOUNT
-                                        </button>
-                                    </div>
+                                <div className="mt-auto space-y-3">
                                     <button
                                         onClick={handleSaveSale}
                                         disabled={cart.length === 0}
-                                        className="w-full py-6 bg-emerald-600 text-white rounded-3xl font-black text-xl hover:bg-emerald-700 shadow-2xl shadow-emerald-200 transition-all active:scale-95 flex items-center justify-center gap-4 disabled:opacity-50 disabled:scale-100 disabled:shadow-none"
+                                        className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 shadow-md shadow-blue-100 transition-all active:scale-95 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2"
                                     >
-                                        <ShoppingCart size={28} />
-                                        CHECKOUT NOW
+                                        <ShoppingCart size={20} />
+                                        CHECKOUT
                                     </button>
                                 </div>
                             </div>

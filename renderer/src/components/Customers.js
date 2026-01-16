@@ -9,24 +9,23 @@ import {
 // Premium Stat Card Component
 const StatCard = ({ title, value, icon: Icon, color }) => {
     const colors = {
-        orange: 'from-orange-500 to-orange-600 shadow-orange-200',
-        emerald: 'from-emerald-500 to-emerald-600 shadow-emerald-200',
-        red: 'from-red-500 to-red-600 shadow-red-200',
-        blue: 'from-blue-500 to-blue-600 shadow-blue-200',
-        purple: 'from-purple-500 to-purple-600 shadow-purple-200',
-        gray: 'from-gray-500 to-gray-600 shadow-gray-200'
+        orange: 'bg-white border-l-4 border-l-blue-500',
+        emerald: 'bg-white border-l-4 border-l-emerald-500',
+        red: 'bg-white border-l-4 border-l-red-500',
+        blue: 'bg-white border-l-4 border-l-blue-600',
+        purple: 'bg-white border-l-4 border-l-indigo-500',
+        gray: 'bg-white border-l-4 border-l-slate-400'
     };
 
     return (
-        <div className={`relative overflow-hidden bg-gradient-to-br ${colors[color]} p-6 rounded-[2rem] text-white shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group`}>
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-8 -mt-8 blur-2xl"></div>
+        <div className={`relative overflow-hidden ${colors[color]} p-5 rounded-xl border border-slate-200 shadow-sm transition-all duration-200 hover:shadow-md group`}>
             <div className="relative flex items-center justify-between">
                 <div>
-                    <p className="text-white/70 text-xs font-bold uppercase tracking-wider mb-1">{title}</p>
-                    <h3 className="text-2xl font-bold">{value}</h3>
+                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">{title}</p>
+                    <h3 className="text-xl font-bold text-slate-800">{value}</h3>
                 </div>
-                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
-                    <Icon size={24} />
+                <div className="p-2.5 bg-slate-50 text-slate-400 rounded-lg group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                    <Icon size={20} />
                 </div>
             </div>
         </div>
@@ -34,13 +33,13 @@ const StatCard = ({ title, value, icon: Icon, color }) => {
 };
 
 const Modal = ({ title, children, onClose, size = 'md' }) => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-        <div className={`bg-white rounded-[2.5rem] shadow-2xl w-full ${size === 'lg' ? 'max-w-4xl' : 'max-w-xl'} overflow-hidden animate-in zoom-in-95 duration-200`}>
-            <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-                <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors"><X size={20} /></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-[2px] animate-in fade-in duration-200">
+        <div className={`bg-white rounded-xl shadow-xl w-full ${size === 'lg' ? 'max-w-4xl' : 'max-w-xl'} overflow-hidden border border-slate-200`}>
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <h3 className="text-lg font-bold text-slate-800">{title}</h3>
+                <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"><X size={18} /></button>
             </div>
-            <div className="p-8 max-h-[85vh] overflow-y-auto scrollbar-hide">{children}</div>
+            <div className="p-6 max-h-[85vh] overflow-y-auto">{children}</div>
         </div>
     </div>
 );
@@ -123,16 +122,14 @@ const Customers = ({ currentUser }) => {
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Customer Management</h1>
-                    <p className="text-gray-500 mt-1">Manage your clients, track balances and credit limits.</p>
+                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Customer Management</h1>
+                    <p className="text-sm text-slate-500 mt-0.5">Manage your clients, track balances and credit limits.</p>
                 </div>
                 <button
                     onClick={() => openModal()}
-                    className="flex items-center justify-center space-x-2 px-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-bold hover:shadow-lg hover:shadow-orange-200 hover:-translate-y-0.5 transition-all active:scale-95 shadow-md group"
+                    className="flex items-center justify-center space-x-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all active:scale-95 shadow-sm shadow-blue-200"
                 >
-                    <div className="p-1 px-1.5 bg-white/20 rounded-lg group-hover:rotate-12 transition-transform duration-300">
-                        <Plus size={18} />
-                    </div>
+                    <Plus size={18} />
                     <span>Add New Customer</span>
                 </button>
             </div>
@@ -146,21 +143,21 @@ const Customers = ({ currentUser }) => {
             </div>
 
             {/* Main Content Card */}
-            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-100/50 overflow-hidden">
-                <div className="p-8 border-b border-gray-50 bg-gray-50/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="relative group w-full md:w-96">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={20} />
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="relative group w-full md:w-80">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
                         <input
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-12 pr-6 py-4 bg-white border border-gray-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all shadow-sm"
-                            placeholder="Search by name or phone number..."
+                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all"
+                            placeholder="Search customers..."
                         />
                     </div>
-                    <div className="flex items-center gap-3">
-                        <button onClick={loadCustomers} className="p-3 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all border border-gray-200 bg-white">
-                            <Loader2 size={20} className={loading ? 'animate-spin' : ''} />
+                    <div className="flex items-center gap-2">
+                        <button onClick={loadCustomers} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-slate-200 bg-white">
+                            <Loader2 size={18} className={loading ? 'animate-spin' : ''} />
                         </button>
                     </div>
                 </div>
@@ -168,12 +165,12 @@ const Customers = ({ currentUser }) => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-gray-50/50">
-                                <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Customer</th>
-                                <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Contact Info</th>
-                                <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Address</th>
-                                <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Balance</th>
-                                <th className="px-8 py-5 text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 text-right">Actions</th>
+                            <tr className="bg-slate-50/80">
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">Customer</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">Contact Info</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">Address</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100">Balance</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -181,58 +178,55 @@ const Customers = ({ currentUser }) => {
                                 <tr><td colSpan="5" className="px-8 py-20 text-center text-gray-400 font-medium">Loading customers...</td></tr>
                             ) : filtered.length > 0 ? (
                                 filtered.map((customer) => (
-                                    <tr key={customer.id} className="hover:bg-orange-50/30 transition-colors group">
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center space-x-4">
-                                                <div className="relative">
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl blur-md opacity-30 group-hover:opacity-50 transition-opacity"></div>
-                                                    <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                                        {customer.name.charAt(0).toUpperCase()}
-                                                    </div>
+                                    <tr key={customer.id} className="hover:bg-slate-50/50 transition-colors group border-b border-slate-50 last:border-0">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-sm">
+                                                    {customer.name.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-gray-900 group-hover:text-orange-600 transition-colors">{customer.name}</p>
-                                                    <p className="text-xs text-gray-400 font-medium mt-0.5">ID: {customer.id.slice(-6).toUpperCase()}</p>
+                                                    <p className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors leading-none">{customer.name}</p>
+                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-1">ID: {customer.id.slice(-6).toUpperCase()}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className="space-y-1.5">
-                                                <div className="flex items-center text-gray-600 text-sm font-medium gap-2">
-                                                    <Phone size={14} className="text-gray-400" /> {customer.phone || 'N/A'}
+                                        <td className="px-6 py-4">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center text-slate-600 text-xs font-medium gap-1.5">
+                                                    <Phone size={12} className="text-slate-400" /> {customer.phone || 'N/A'}
                                                 </div>
-                                                <div className="flex items-center text-gray-400 text-xs font-medium gap-2">
-                                                    <Mail size={14} /> {customer.email || 'No email provided'}
+                                                <div className="flex items-center text-slate-400 text-[11px] font-medium gap-1.5">
+                                                    <Mail size={12} /> {customer.email || 'No email provided'}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6 max-w-xs">
-                                            <div className="flex items-center text-gray-600 text-sm gap-2">
-                                                <MapPin size={16} className="text-orange-400 shrink-0" />
+                                        <td className="px-6 py-4 max-w-xs">
+                                            <div className="flex items-center text-slate-600 text-xs gap-1.5">
+                                                <MapPin size={14} className="text-slate-400 shrink-0" />
                                                 <span className="truncate">{customer.address || 'No address set'}</span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className="space-y-1">
-                                                <p className={`text-base font-bold ${customer.balance > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                                        <td className="px-6 py-4">
+                                            <div className="space-y-0.5">
+                                                <p className={`text-sm font-bold ${customer.balance > 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
                                                     PKR {(customer.balance || 0).toLocaleString()}
                                                 </p>
-                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Limit: PKR {(customer.creditLimit || 0).toLocaleString()}</p>
+                                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tight">Limit: {customer.creditLimit || 0}</p>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center justify-end space-x-2">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center justify-end space-x-1">
                                                 <button
                                                     onClick={() => openModal(customer)}
-                                                    className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 border border-transparent hover:border-blue-100"
+                                                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                                                 >
-                                                    <Edit2 size={18} />
+                                                    <Edit2 size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(customer.id)}
-                                                    className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 border border-transparent hover:border-red-100"
+                                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                                                 >
-                                                    <Trash2 size={18} />
+                                                    <Trash2 size={16} />
                                                 </button>
                                             </div>
                                         </td>
@@ -262,46 +256,46 @@ const Customers = ({ currentUser }) => {
                     <form onSubmit={handleSave} className="space-y-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-6">
-                                <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                    <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
+                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
                                     Basic Information
                                 </h4>
-                                <div className="space-y-1.5 text-left">
-                                    <label className="text-sm font-bold text-gray-700 ml-1">Full Name *</label>
+                                <div className="space-y-2 text-left">
+                                    <label className="text-xs font-bold text-slate-600 ml-1">Full Name *</label>
                                     <div className="relative">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                         <input
                                             required
                                             type="text"
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium"
+                                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all text-sm"
                                             placeholder="e.g. Ali Khan"
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-1.5 text-left">
-                                    <label className="text-sm font-bold text-gray-700 ml-1">Phone Number</label>
+                                <div className="space-y-2 text-left">
+                                    <label className="text-xs font-bold text-slate-600 ml-1">Phone Number</label>
                                     <div className="relative">
-                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                         <input
                                             type="text"
                                             value={formData.phone}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium"
+                                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all text-sm"
                                             placeholder="03xx-xxxxxxx"
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-1.5 text-left">
-                                    <label className="text-sm font-bold text-gray-700 ml-1">Email Address</label>
+                                <div className="space-y-2 text-left">
+                                    <label className="text-xs font-bold text-slate-600 ml-1">Email Address</label>
                                     <div className="relative">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                         <input
                                             type="email"
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium"
+                                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all text-sm"
                                             placeholder="customer@email.com"
                                         />
                                     </div>
@@ -309,32 +303,32 @@ const Customers = ({ currentUser }) => {
                             </div>
 
                             <div className="space-y-6">
-                                <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                    <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div>
+                                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
                                     Additional Details
                                 </h4>
-                                <div className="space-y-1.5 text-left">
-                                    <label className="text-sm font-bold text-gray-700 ml-1">Credit Limit (PKR)</label>
+                                <div className="space-y-2 text-left">
+                                    <label className="text-xs font-bold text-slate-600 ml-1">Credit Limit (PKR)</label>
                                     <div className="relative">
-                                        <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                        <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                         <input
                                             type="number"
                                             value={formData.creditLimit}
                                             onChange={(e) => setFormData({ ...formData, creditLimit: e.target.value })}
-                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium"
+                                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all text-sm"
                                             placeholder="0.00"
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-1.5 text-left">
-                                    <label className="text-sm font-bold text-gray-700 ml-1">Shipping/Billing Address</label>
+                                <div className="space-y-2 text-left">
+                                    <label className="text-xs font-bold text-slate-600 ml-1">Shipping/Billing Address</label>
                                     <div className="relative">
-                                        <MapPin className="absolute left-4 top-4 text-gray-400" size={18} />
+                                        <MapPin className="absolute left-3.5 top-3 text-slate-400" size={16} />
                                         <textarea
-                                            rows="4"
+                                            rows="3"
                                             value={formData.address}
                                             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                            className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-medium"
+                                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all text-sm"
                                             placeholder="Store address, city, etc."
                                         ></textarea>
                                     </div>
@@ -342,20 +336,20 @@ const Customers = ({ currentUser }) => {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                        <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100">
                             <button
                                 type="button"
                                 onClick={() => setShowModal(false)}
-                                className="px-6 py-3.5 text-gray-500 font-bold hover:text-gray-700 transition-all rounded-2xl border border-transparent hover:bg-gray-100"
+                                className="px-4 py-2 text-slate-500 font-bold hover:text-slate-700 transition-all rounded-lg hover:bg-slate-100 text-sm"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="px-8 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-2xl hover:shadow-lg hover:shadow-orange-200 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                                className="px-5 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2 text-sm shadow-sm shadow-blue-200"
                             >
-                                {saving ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                                {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                                 {formData.id ? 'Update Customer' : 'Add Customer'}
                             </button>
                         </div>

@@ -1,94 +1,133 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-const Reports = () => {
+const Reports = ({ currentUser }) => {
+    const [summary, setSummary] = useState({ totalSales: 0, totalPurchases: 0, totalExpenses: 0, netProfit: 0, recentDays: [] });
+    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState('Weekly');
+    const [customRange, setCustomRange] = useState({ start: '', end: '' });
+
+    useEffect(() => {
+        loadReport();
+    }, [currentUser, filter]);
+
+    const loadReport = async () => {
+        if (!currentUser?.company_id) return;
+        setLoading(true);
+        try {
+            const data = await window.electronAPI.getReportSummary({ companyId: currentUser.company_id, period: filter });
+            setSummary(data || { totalSales: 0, totalPurchases: 0, totalExpenses: 0, netProfit: 0, recentDays: [] });
+        } catch (err) {
+            console.error('Error loading report:', err);
+        }
+        setLoading(false);
+    };
+
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-800">Reports</h1>
-                <div className="flex bg-gray-100 rounded-xl p-1">
-                    <button className="px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium">Weekly</button>
-                    <button className="px-4 py-2 text-gray-600 text-sm font-medium hover:bg-white rounded-lg transition-colors">Monthly</button>
-                    <button className="px-4 py-2 text-gray-600 text-sm font-medium hover:bg-white rounded-lg transition-colors">Yearly</button>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Business Reports</h1>
+                    <p className="text-slate-500 text-sm mt-1">Comprehensive analysis of your organization's performance.</p>
+                </div>
+                <div className="flex bg-slate-100/50 p-1 rounded-lg border border-slate-200 w-fit">
+                    {['Weekly', 'Monthly', 'Yearly'].map((p) => (
+                        <button
+                            key={p}
+                            onClick={() => setFilter(p)}
+                            className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${filter === p ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            {p}
+                        </button>
+                    ))}
                 </div>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <p className="text-sm text-gray-500">Total Sales</p>
-                    <p className="text-2xl font-bold text-blue-600 mt-1">PKR 85,000</p>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-white rounded-xl p-5 border-l-4 border-l-blue-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Sales</p>
+                    <p className="text-xl font-bold text-slate-800">PKR {summary.totalSales.toLocaleString()}</p>
                 </div>
-                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <p className="text-sm text-gray-500">Total Purchases</p>
-                    <p className="text-2xl font-bold text-orange-500 mt-1">PKR 45,000</p>
+                <div className="bg-white rounded-xl p-5 border-l-4 border-l-amber-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Purchases</p>
+                    <p className="text-xl font-bold text-slate-800">PKR {summary.totalPurchases.toLocaleString()}</p>
                 </div>
-                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <p className="text-sm text-gray-500">Total Expenses</p>
-                    <p className="text-2xl font-bold text-red-500 mt-1">PKR 12,000</p>
+                <div className="bg-white rounded-xl p-5 border-l-4 border-l-rose-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Expenses</p>
+                    <p className="text-xl font-bold text-slate-800">PKR {summary.totalExpenses.toLocaleString()}</p>
                 </div>
-                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <p className="text-sm text-gray-500">Net Profit</p>
-                    <p className="text-2xl font-bold text-emerald-600 mt-1">PKR 28,000</p>
+                <div className="bg-white rounded-xl p-5 border-l-4 border-l-emerald-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Net Profit</p>
+                    <p className={`text-xl font-bold ${summary.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>PKR {summary.netProfit.toLocaleString()}</p>
                 </div>
             </div>
 
             {/* Report Generator */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-800 mb-4">Generate Report</h2>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm">
+                <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight mb-6">Analytical Report Builder</h2>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-2">Report Type</label>
-                        <select className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100">
-                            <option>Sales Report</option>
-                            <option>Purchase Report</option>
-                            <option>Expense Report</option>
-                            <option>Profit & Loss</option>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Module Category</label>
+                        <select className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 outline-none focus:border-blue-500 transition-all">
+                            <option>Sales Performance</option>
+                            <option>Purchase History</option>
+                            <option>Expense Audit</option>
+                            <option>Profit & Loss Statement</option>
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-2">From Date</label>
-                        <input type="date" className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100" />
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Interval Start</label>
+                        <input type="date" value={customRange.start} onChange={(e) => setCustomRange({ ...customRange, start: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 outline-none focus:border-blue-500 transition-all" />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-2">To Date</label>
-                        <input type="date" className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-100" />
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Interval End</label>
+                        <input type="date" value={customRange.end} onChange={(e) => setCustomRange({ ...customRange, end: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 outline-none focus:border-blue-500 transition-all" />
                     </div>
                     <div className="flex items-end">
-                        <button className="w-full px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 transition-colors">
-                            Generate
+                        <button className="w-full px-6 py-2.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all shadow-sm shadow-blue-100 active:scale-95 text-[10px] uppercase tracking-widest">
+                            Compile Report
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* Summary Table */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-gray-100">
-                    <h2 className="font-bold text-gray-800">Daily Summary</h2>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[300px]">
+                <div className="p-5 border-b border-slate-100 bg-slate-50/20">
+                    <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Consolidated Period Summary</h2>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 text-gray-500 font-medium">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-50/80">
                             <tr>
-                                <th className="px-6 py-4">Date</th>
-                                <th className="px-6 py-4">Invoices</th>
-                                <th className="px-6 py-4">Sales</th>
-                                <th className="px-6 py-4">Expenses</th>
-                                <th className="px-6 py-4">Profit</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Date/Period</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 text-center">Invoices</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Gross Sales</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Daily Expenses</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Adjusted Profit</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {[
-                                { date: 'January 12th, 2026', invoices: 15, sales: 25000, expenses: 2500, profit: 22500 },
-                                { date: 'January 11th, 2026', invoices: 12, sales: 18000, expenses: 1500, profit: 16500 },
-                                { date: 'January 10th, 2026', invoices: 20, sales: 32000, expenses: 3000, profit: 29000 },
-                            ].map((row, i) => (
-                                <tr key={i} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-medium text-gray-700">{row.date}</td>
-                                    <td className="px-6 py-4 text-gray-600">{row.invoices}</td>
-                                    <td className="px-6 py-4 text-blue-600 font-medium">PKR {row.sales.toLocaleString()}</td>
-                                    <td className="px-6 py-4 text-red-500">PKR {row.expenses.toLocaleString()}</td>
-                                    <td className="px-6 py-4 font-semibold text-emerald-600">PKR {row.profit.toLocaleString()}</td>
+                        <tbody className="divide-y divide-slate-50">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="5" className="px-6 py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">Generating reports...</td>
+                                </tr>
+                            ) : summary.recentDays.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" className="px-6 py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No data available for this period</td>
+                                </tr>
+                            ) : summary.recentDays.map((row, i) => (
+                                <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
+                                    <td className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-tight">{row.date}</td>
+                                    <td className="px-6 py-4 text-center text-xs font-bold text-slate-800">{row.invoices}</td>
+                                    <td className="px-6 py-4 text-xs font-bold text-blue-600 tracking-tight">PKR {row.sales.toLocaleString()}</td>
+                                    <td className="px-6 py-4 text-xs font-bold text-rose-500 tracking-tight">PKR {row.expenses.toLocaleString()}</td>
+                                    <td className="px-6 py-4">
+                                        <span className={`text-xs font-bold tracking-tight ${row.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                            PKR {row.profit.toLocaleString()}
+                                        </span>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -100,3 +139,4 @@ const Reports = () => {
 };
 
 export default Reports;
+

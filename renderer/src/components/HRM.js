@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Users, Calendar, DollarSign, Plus, Search, Edit, Eye } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, Calendar, DollarSign, Plus, Search, Edit, Eye, X, Trash2, Check, UserPlus } from 'lucide-react';
 
 const tabs = [
     { id: 'employees', label: 'Employee List', icon: Users },
@@ -7,156 +7,373 @@ const tabs = [
     { id: 'payroll', label: 'Payroll', icon: DollarSign },
 ];
 
-const HRM = () => {
+const HRM = ({ currentUser }) => {
     const [activeTab, setActiveTab] = useState('employees');
+    const [employees, setEmployees] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadEmployees();
+    }, [currentUser]);
+
+    const loadEmployees = async () => {
+        if (!currentUser?.company_id) return;
+        setLoading(true);
+        try {
+            const data = await window.electronAPI.getEmployees(currentUser.company_id);
+            setEmployees(data || []);
+        } catch (err) {
+            console.error('Error loading employees:', err);
+        }
+        setLoading(false);
+    };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-800">HRM & Payroll</h1>
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight">HRM & Payroll</h1>
+                    <p className="text-slate-500 text-sm mt-1">Manage personnel, attendance and payout structures.</p>
+                </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="flex border-b border-gray-200">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[500px]">
+                <div className="flex border-b border-slate-100 bg-slate-50/20">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium transition-colors ${activeTab === tab.id
-                                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
-                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                            className={`flex items-center space-x-2 px-6 py-4 text-[10px] font-bold uppercase tracking-widest transition-all relative ${activeTab === tab.id
+                                ? 'text-blue-600'
+                                : 'text-slate-400 hover:text-slate-600'
                                 }`}
                         >
-                            <tab.icon size={18} />
+                            <tab.icon size={16} />
                             <span>{tab.label}</span>
+                            {activeTab === tab.id && (
+                                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
+                            )}
                         </button>
                     ))}
                 </div>
 
-                <div className="p-6">
-                    {activeTab === 'employees' && <EmployeeList />}
-                    {activeTab === 'attendance' && <Attendance />}
-                    {activeTab === 'payroll' && <Payroll />}
+                <div className="p-8">
+                    {activeTab === 'employees' && <EmployeeList employees={employees} onRefresh={loadEmployees} currentUser={currentUser} loading={loading} />}
+                    {activeTab === 'attendance' && <Attendance employees={employees} currentUser={currentUser} />}
+                    {activeTab === 'payroll' && <Payroll employees={employees} />}
                 </div>
             </div>
         </div>
     );
 };
 
-const EmployeeList = () => (
-    <div className="space-y-4">
-        <div className="flex items-center justify-between">
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input type="text" className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg w-64" placeholder="Search employees..." />
-            </div>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
-                <Plus size={18} />
-                <span>Add Employee</span>
-            </button>
-        </div>
-        <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 text-gray-600 font-medium">
-                    <tr>
-                        <th className="px-6 py-4">ID</th>
-                        <th className="px-6 py-4">Name</th>
-                        <th className="px-6 py-4">Designation</th>
-                        <th className="px-6 py-4">Phone</th>
-                        <th className="px-6 py-4">Salary</th>
-                        <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4">Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                    {[
-                        { id: 'EMP-001', name: 'Ahmed Khan', designation: 'Manager', phone: '0300-1234567', salary: 50000, status: 'Active' },
-                        { id: 'EMP-002', name: 'Ali Raza', designation: 'Cashier', phone: '0321-9876543', salary: 25000, status: 'Active' },
-                        { id: 'EMP-003', name: 'Sara Ahmed', designation: 'Accountant', phone: '0333-5555555', salary: 35000, status: 'Active' },
-                    ].map((emp, i) => (
-                        <tr key={i} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 font-medium">{emp.id}</td>
-                            <td className="px-6 py-4">{emp.name}</td>
-                            <td className="px-6 py-4"><span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">{emp.designation}</span></td>
-                            <td className="px-6 py-4">{emp.phone}</td>
-                            <td className="px-6 py-4 font-semibold">PKR {emp.salary.toLocaleString()}</td>
-                            <td className="px-6 py-4"><span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">{emp.status}</span></td>
-                            <td className="px-6 py-4">
-                                <div className="flex space-x-2">
-                                    <button className="p-1 text-gray-400 hover:text-blue-600"><Eye size={16} /></button>
-                                    <button className="p-1 text-gray-400 hover:text-blue-600"><Edit size={16} /></button>
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    </div>
-);
+const EmployeeList = ({ employees, onRefresh, currentUser, loading }) => {
+    const [search, setSearch] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [formData, setFormData] = useState({ firstName: '', lastName: '', phone: '', designation: '', salary: '', joiningDate: new Date().toISOString().split('T')[0] });
+    const [saving, setSaving] = useState(false);
 
-const Attendance = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const handleSave = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            const data = { ...formData, companyId: currentUser.company_id };
+            let result;
+            if (formData.id) {
+                result = await window.electronAPI.updateEmployee(data);
+            } else {
+                result = await window.electronAPI.createEmployee(data);
+            }
+            if (result.success !== false) {
+                setShowModal(false);
+                onRefresh();
+            } else {
+                alert(result.message || "Error saving employee");
+            }
+        } catch (err) {
+            alert("Error saving employee: " + err.message);
+        }
+        setSaving(false);
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this employee?")) return;
+        try {
+            const result = await window.electronAPI.deleteEmployee(id);
+            if (result.success !== false) {
+                onRefresh();
+            } else {
+                alert(result.message || "Error deleting employee");
+            }
+        } catch (err) {
+            alert("Error deleting employee: " + err.message);
+        }
+    };
+
+    const filtered = employees.filter(e =>
+        `${e.firstName} ${e.lastName || ''}`.toLowerCase().includes(search.toLowerCase()) ||
+        e.designation?.toLowerCase().includes(search.toLowerCase())
+    );
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-                <input type="date" className="px-4 py-2 border border-gray-200 rounded-lg" defaultValue={today} />
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">Load</button>
+        <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="relative group w-full md:w-80">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
+                    <input
+                        type="text"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all shadow-sm"
+                        placeholder="Search personnel..."
+                    />
+                </div>
+                <button
+                    onClick={() => {
+                        setFormData({ firstName: '', lastName: '', phone: '', designation: '', salary: '', joiningDate: new Date().toISOString().split('T')[0] });
+                        setShowModal(true);
+                    }}
+                    className="flex items-center justify-center space-x-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all shadow-sm shadow-blue-100 active:scale-95 text-xs uppercase tracking-widest"
+                >
+                    <Plus size={16} />
+                    <span>Onboard Employee</span>
+                </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="p-4 bg-green-50 rounded-lg border border-green-100">
-                    <p className="text-sm text-gray-500">Present</p>
-                    <p className="text-2xl font-bold text-green-600">3</p>
-                </div>
-                <div className="p-4 bg-red-50 rounded-lg border border-red-100">
-                    <p className="text-sm text-gray-500">Absent</p>
-                    <p className="text-2xl font-bold text-red-600">0</p>
-                </div>
-                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-100">
-                    <p className="text-sm text-gray-500">Late</p>
-                    <p className="text-2xl font-bold text-yellow-600">1</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <p className="text-sm text-gray-500">Leave</p>
-                    <p className="text-2xl font-bold text-gray-600">0</p>
-                </div>
-            </div>
-
-            <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-50 text-gray-600 font-medium">
+            <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                <table className="w-full text-left border-collapse">
+                    <thead className="bg-slate-50/80">
                         <tr>
-                            <th className="px-6 py-4">Employee</th>
-                            <th className="px-6 py-4">Check In</th>
-                            <th className="px-6 py-4">Check Out</th>
-                            <th className="px-6 py-4">Status</th>
-                            <th className="px-6 py-4">Action</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Name</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Designation</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Phone</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Salary</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Joined</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
-                        {[
-                            { name: 'Ahmed Khan', checkIn: '09:00', checkOut: '-', status: 'Present' },
-                            { name: 'Ali Raza', checkIn: '09:30', checkOut: '-', status: 'Late' },
-                            { name: 'Sara Ahmed', checkIn: '08:55', checkOut: '-', status: 'Present' },
-                        ].map((att, i) => (
-                            <tr key={i} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 font-medium">{att.name}</td>
-                                <td className="px-6 py-4">{att.checkIn}</td>
-                                <td className="px-6 py-4">{att.checkOut}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-2 py-1 rounded text-xs ${att.status === 'Present' ? 'bg-green-100 text-green-700' :
-                                            att.status === 'Late' ? 'bg-yellow-100 text-yellow-700' :
-                                                'bg-red-100 text-red-700'
-                                        }`}>{att.status}</span>
+                    <tbody className="divide-y divide-slate-50">
+                        {loading ? (
+                            <tr>
+                                <td colSpan="6" className="px-6 py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">
+                                    <div className="flex flex-col items-center gap-3">
+                                        <div className="w-8 h-8 border-3 border-slate-100 border-t-blue-600 rounded-full animate-spin"></div>
+                                        <span>Loading staff...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        ) : filtered.length === 0 ? (
+                            <tr>
+                                <td colSpan="6" className="px-6 py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No employees found</td>
+                            </tr>
+                        ) : filtered.map((emp) => (
+                            <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors group">
+                                <td className="px-6 py-4 font-bold text-slate-800 text-xs">
+                                    {emp.firstName} {emp.lastName}
                                 </td>
                                 <td className="px-6 py-4">
-                                    <select className="px-2 py-1 border rounded text-xs">
-                                        <option>Present</option>
-                                        <option>Absent</option>
-                                        <option>Late</option>
-                                        <option>Leave</option>
+                                    <span className="px-2.5 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase tracking-tight border border-blue-100">{emp.designation}</span>
+                                </td>
+                                <td className="px-6 py-4 text-slate-500 font-medium text-xs">{emp.phone}</td>
+                                <td className="px-6 py-4 font-bold text-slate-800 text-xs">PKR {emp.salary.toLocaleString()}</td>
+                                <td className="px-6 py-4 text-slate-400 font-bold text-[10px] uppercase">{new Date(emp.joiningDate).toLocaleDateString()}</td>
+                                <td className="px-6 py-4 text-right">
+                                    <div className="flex items-center justify-end space-x-1">
+                                        <button onClick={() => { setFormData(emp); setShowModal(true); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
+                                        <button onClick={() => handleDelete(emp.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Modal */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-[2px]">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
+                        <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight">{formData.id ? 'Edit Employee' : 'Onboard New Employee'}</h3>
+                            <button onClick={() => setShowModal(false)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><X size={18} /></button>
+                        </div>
+                        <form onSubmit={handleSave} className="p-8 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1.5">First Name</label>
+                                    <input required type="text" value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 outline-none font-bold text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1.5">Last Name</label>
+                                    <input type="text" value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 outline-none font-bold text-sm" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1.5">Designation</label>
+                                    <input required type="text" value={formData.designation} onChange={(e) => setFormData({ ...formData, designation: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 outline-none font-bold text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1.5">Phone Number</label>
+                                    <input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 outline-none font-bold text-sm" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1.5">Salary (PKR)</label>
+                                    <input required type="number" value={formData.salary} onChange={(e) => setFormData({ ...formData, salary: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 outline-none font-bold text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1.5">Joining Date</label>
+                                    <input required type="date" value={formData.joiningDate} onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })} className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-blue-500 outline-none font-bold text-sm" />
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-end gap-3 pt-4">
+                                <button type="button" onClick={() => setShowModal(false)} className="px-6 py-2 text-slate-400 font-bold hover:text-slate-600 transition-colors text-xs uppercase tracking-widest">Discard</button>
+                                <button type="submit" disabled={saving} className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all disabled:opacity-50 text-xs uppercase tracking-widest">{saving ? 'Saving...' : 'Save Employee'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const Attendance = ({ employees, currentUser }) => {
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [attendanceRows, setAttendanceRows] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        loadAttendance();
+    }, [date, employees]);
+
+    const loadAttendance = async () => {
+        if (!currentUser?.company_id) return;
+        setLoading(true);
+        try {
+            const existing = await window.electronAPI.getAttendance({ companyId: currentUser.company_id, date });
+
+            // Map employees with their existing attendance status
+            const rows = employees.map(emp => {
+                const att = existing.find(a => a.employeeId === emp.id);
+                return {
+                    employeeId: emp.id,
+                    name: `${emp.firstName} ${emp.lastName || ''}`,
+                    status: att ? att.status : 'Absent',
+                    checkIn: att?.checkIn ? new Date(att.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-',
+                    checkOut: att?.checkOut ? new Date(att.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-',
+                };
+            });
+            setAttendanceRows(rows);
+        } catch (err) {
+            console.error('Error loading attendance:', err);
+        }
+        setLoading(false);
+    };
+
+    const handleStatusChange = (employeeId, newStatus) => {
+        setAttendanceRows(rows => rows.map(r => r.employeeId === employeeId ? { ...r, status: newStatus } : r));
+    };
+
+    const saveAttendance = async () => {
+        setSaving(true);
+        try {
+            for (const row of attendanceRows) {
+                await window.electronAPI.saveAttendance({
+                    employeeId: row.employeeId,
+                    status: row.status,
+                    date: date
+                });
+            }
+            alert("Attendance updated successfully!");
+            loadAttendance();
+        } catch (err) {
+            alert("Error saving attendance: " + err.message);
+        }
+        setSaving(false);
+    };
+
+    const stats = {
+        present: attendanceRows.filter(r => r.status === 'Present').length,
+        absent: attendanceRows.filter(r => r.status === 'Absent').length,
+        late: attendanceRows.filter(r => r.status === 'Late').length,
+        leave: attendanceRows.filter(r => r.status === 'Leave').length,
+    };
+
+    return (
+        <div className="space-y-8">
+            <div className="flex items-center space-x-3">
+                <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 outline-none focus:border-blue-500"
+                />
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 bg-white rounded-xl border-l-4 border-l-emerald-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Present Today</p>
+                    <p className="text-xl font-bold text-slate-800">{stats.present}</p>
+                </div>
+                <div className="p-4 bg-white rounded-xl border-l-4 border-l-rose-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Absent Today</p>
+                    <p className="text-xl font-bold text-slate-800">{stats.absent}</p>
+                </div>
+                <div className="p-4 bg-white rounded-xl border-l-4 border-l-amber-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Late Arrivals</p>
+                    <p className="text-xl font-bold text-slate-800">{stats.late}</p>
+                </div>
+                <div className="p-4 bg-white rounded-xl border-l-4 border-l-slate-400 border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">On Leaves</p>
+                    <p className="text-xl font-bold text-slate-800">{stats.leave}</p>
+                </div>
+            </div>
+
+            <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                <table className="w-full text-left border-collapse">
+                    <thead className="bg-slate-50/80">
+                        <tr>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Employee</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Check In</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Check Out</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Status</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                        {loading ? (
+                            <tr>
+                                <td colSpan="5" className="px-6 py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">Loading records...</td>
+                            </tr>
+                        ) : attendanceRows.length === 0 ? (
+                            <tr>
+                                <td colSpan="5" className="px-6 py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No employees available</td>
+                            </tr>
+                        ) : attendanceRows.map((att) => (
+                            <tr key={att.employeeId} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4 font-bold text-slate-800 text-xs uppercase tracking-tight">{att.name}</td>
+                                <td className="px-6 py-4 font-bold text-slate-600 text-xs">{att.checkIn}</td>
+                                <td className="px-6 py-4 font-bold text-slate-400 text-xs">{att.checkOut}</td>
+                                <td className="px-6 py-4">
+                                    <span className={`px-2.5 py-1 rounded text-[10px] font-bold border uppercase tracking-tight ${att.status === 'Present' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                        att.status === 'Late' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                            'bg-rose-50 text-rose-600 border-rose-100'
+                                        }`}>{att.status}</span>
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                    <select
+                                        value={att.status}
+                                        onChange={(e) => handleStatusChange(att.employeeId, e.target.value)}
+                                        className="px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] font-bold text-slate-600 uppercase tracking-tight outline-none focus:border-blue-500"
+                                    >
+                                        <option value="Present">Present</option>
+                                        <option value="Absent">Absent</option>
+                                        <option value="Late">Late</option>
+                                        <option value="Leave">Leave</option>
                                     </select>
                                 </td>
                             </tr>
@@ -165,83 +382,62 @@ const Attendance = () => {
                 </table>
             </div>
 
-            <button className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700">
-                Save Attendance
+            <button
+                onClick={saveAttendance}
+                disabled={saving || loading}
+                className="flex items-center justify-center px-8 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all shadow-sm shadow-blue-100 active:scale-95 text-xs uppercase tracking-widest disabled:opacity-50"
+            >
+                {saving ? 'Updating...' : 'Save Attendance Record'}
             </button>
         </div>
     );
 };
 
-const Payroll = () => (
-    <div className="space-y-4">
-        <div className="flex items-center space-x-4">
-            <select className="px-4 py-2 border border-gray-200 rounded-lg">
-                <option>January 2026</option>
-                <option>December 2025</option>
-            </select>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
-                <Plus size={18} />
-                <span>Generate Payroll</span>
-            </button>
-        </div>
-
-        <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 text-gray-600 font-medium">
-                    <tr>
-                        <th className="px-6 py-4">Employee</th>
-                        <th className="px-6 py-4">Basic Pay</th>
-                        <th className="px-6 py-4">Bonuses</th>
-                        <th className="px-6 py-4">Deductions</th>
-                        <th className="px-6 py-4">Net Salary</th>
-                        <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4">Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                    {[
-                        { name: 'Ahmed Khan', basic: 50000, bonus: 5000, deductions: 2000, status: 'Pending' },
-                        { name: 'Ali Raza', basic: 25000, bonus: 0, deductions: 1000, status: 'Paid' },
-                        { name: 'Sara Ahmed', basic: 35000, bonus: 2000, deductions: 1500, status: 'Pending' },
-                    ].map((pay, i) => (
-                        <tr key={i} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 font-medium">{pay.name}</td>
-                            <td className="px-6 py-4">PKR {pay.basic.toLocaleString()}</td>
-                            <td className="px-6 py-4 text-green-600">+PKR {pay.bonus.toLocaleString()}</td>
-                            <td className="px-6 py-4 text-red-600">-PKR {pay.deductions.toLocaleString()}</td>
-                            <td className="px-6 py-4 font-bold">PKR {(pay.basic + pay.bonus - pay.deductions).toLocaleString()}</td>
-                            <td className="px-6 py-4">
-                                <span className={`px-2 py-1 rounded text-xs ${pay.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{pay.status}</span>
-                            </td>
-                            <td className="px-6 py-4">
-                                <div className="flex space-x-2">
-                                    <button className="text-blue-600 text-xs hover:underline">View Slip</button>
-                                    {pay.status === 'Pending' && <button className="text-green-600 text-xs hover:underline">Mark Paid</button>}
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-
-        <div className="p-4 bg-gray-50 rounded-lg border">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div>
-                    <p className="text-sm text-gray-500">Total Payroll</p>
-                    <p className="text-xl font-bold">PKR 112,500</p>
-                </div>
-                <div>
-                    <p className="text-sm text-gray-500">Paid</p>
-                    <p className="text-xl font-bold text-green-600">PKR 24,000</p>
-                </div>
-                <div>
-                    <p className="text-sm text-gray-500">Pending</p>
-                    <p className="text-xl font-bold text-yellow-600">PKR 88,500</p>
+const Payroll = ({ employees }) => {
+    // Dynamic Payroll needs a dedicated API usually, for now we calculate based on staff list
+    return (
+        <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                    <select className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 outline-none focus:border-blue-500">
+                        <option>Current Month</option>
+                    </select>
+                    <button className="flex items-center justify-center space-x-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-all shadow-sm shadow-blue-100 active:scale-95 text-xs uppercase tracking-widest">
+                        <Plus size={16} />
+                        <span>Generate Payroll</span>
+                    </button>
                 </div>
             </div>
+
+            <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                <table className="w-full text-left border-collapse">
+                    <thead className="bg-slate-50/80">
+                        <tr>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Employee</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Basic Pay</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Deductions</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Net Salary</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                        {employees.map((emp) => (
+                            <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4 font-bold text-slate-800 text-xs uppercase tracking-tight">{emp.firstName} {emp.lastName}</td>
+                                <td className="px-6 py-4 font-bold text-slate-600 text-xs">PKR {emp.salary.toLocaleString()}</td>
+                                <td className="px-6 py-4 text-rose-600 font-bold text-xs">-PKR 0</td>
+                                <td className="px-6 py-4 font-bold text-blue-600 text-xs">PKR {emp.salary.toLocaleString()}</td>
+                                <td className="px-6 py-4 text-right">
+                                    <button className="text-blue-600 text-[10px] font-bold uppercase tracking-widest hover:underline decoration-2 underline-offset-4">View Slip</button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 export default HRM;
+

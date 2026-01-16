@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MoreVertical, TrendingUp, FolderKanban, Wallet, UserPlus } from 'lucide-react';
 import {
     LineChart as RechartsLineChart,
@@ -14,18 +14,18 @@ import {
 
 // Circular Progress Component
 const CircularProgress = ({ percentage, color }) => {
-    const radius = 20;
+    const radius = 18;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
     return (
-        <svg className="w-12 h-12 transform -rotate-90">
-            <circle cx="24" cy="24" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="4" />
+        <svg className="w-10 h-10 transform -rotate-90">
+            <circle cx="20" cy="20" r={radius} fill="none" stroke="#f1f5f9" strokeWidth="3" />
             <circle
-                cx="24" cy="24" r={radius}
+                cx="20" cy="20" r={radius}
                 fill="none"
                 stroke={color}
-                strokeWidth="4"
+                strokeWidth="3"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
                 strokeLinecap="round"
@@ -34,52 +34,52 @@ const CircularProgress = ({ percentage, color }) => {
     );
 };
 
-// Stat Card Component with Gradient Backgrounds
-const StatCard = ({ title, value, change, changeType, percentage, color, gradient, icon: Icon }) => (
-    <div className={`group relative rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden ${gradient}`}>
-        {/* Background Pattern */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-white/5 rounded-full"></div>
-
-        <div className="relative flex items-start justify-between">
+// Stat Card Component
+const StatCard = ({ title, value, change, changeType, percentage, color, icon: Icon }) => (
+    <div className="bg-white rounded-xl p-5 border-l-4 border-slate-200 border border-slate-200 shadow-sm transition-all hover:shadow-md group" style={{ borderLeftColor: color }}>
+        <div className="flex items-start justify-between">
             <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-3">
-                    {Icon && <Icon size={18} className="text-white/80" />}
-                    <p className="text-xs text-white/80 font-bold uppercase tracking-wider">{title}</p>
+                <div className="flex items-center space-x-2 mb-2">
+                    {Icon && <Icon size={14} className="text-slate-400 group-hover:text-blue-600 transition-colors" />}
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{title}</p>
                 </div>
-                <p className="text-3xl font-bold text-white mb-4">{value}</p>
-                <div className="flex items-center space-x-2">
-                    <span className={`text-xs font-bold px-3 py-1.5 rounded-lg backdrop-blur-sm ${changeType === 'up' ? 'bg-white/20 text-white' : 'bg-black/20 text-white'}`}>
+                <p className="text-xl font-bold text-slate-800">{value}</p>
+                <div className="mt-3 flex items-center space-x-1.5">
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${changeType === 'up' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
                         {changeType === 'up' ? '↑' : '↓'} {change}
                     </span>
-                    <span className="text-xs text-white/70 font-medium">From last Week</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">interval trend</span>
                 </div>
             </div>
-            <div className="relative flex items-center justify-center">
-                <CircularProgress percentage={percentage} color="rgba(255,255,255,0.9)" />
-                <span className="absolute text-sm font-bold text-white">{percentage}%</span>
+            <div className="relative flex items-center justify-center ml-4">
+                <CircularProgress percentage={percentage} color={color} />
+                <span className="absolute text-[10px] font-black text-slate-800">{percentage}%</span>
             </div>
         </div>
     </div>
 );
 
-// Custom Tooltip Component with Orange Accent
+// Custom Tooltip Component
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-gray-900 shadow-2xl rounded-xl px-4 py-3 border border-orange-500/30">
-                <p className="text-xs text-orange-400 mb-2 font-bold uppercase tracking-wide">{label}</p>
-                <div className="flex items-center space-x-2 mb-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
-                    <span className="text-sm font-bold text-white">
-                        PKR {payload[0]?.value?.toLocaleString()}
-                    </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-orange-500"></div>
-                    <span className="text-sm font-bold text-white">
-                        PKR {payload[1]?.value?.toLocaleString()}
-                    </span>
+            <div className="bg-slate-900 shadow-xl rounded-lg px-4 py-3 border border-slate-800 text-white">
+                <p className="text-[10px] text-slate-400 mb-2 font-bold uppercase tracking-widest">{label}</p>
+                <div className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <span className="text-xs font-bold text-slate-300">Revenue</span>
+                        </div>
+                        <span className="text-xs font-black">PKR {payload[0]?.value?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                            <span className="text-xs font-bold text-slate-300">Expenses</span>
+                        </div>
+                        <span className="text-xs font-black">PKR {payload[1]?.value?.toLocaleString()}</span>
+                    </div>
                 </div>
             </div>
         );
@@ -87,78 +87,43 @@ const CustomTooltip = ({ active, payload, label }) => {
     return null;
 };
 
-// VIP Dynamic Line Chart Component using Recharts with Orange Theme
-const LineChart = () => {
-    const data = [
-        { day: 'Mon', profit: 35000, expenses: 28000 },
-        { day: 'Tue', profit: 32000, expenses: 25000 },
-        { day: 'Wed', profit: 48000, expenses: 35000 },
-        { day: 'Thu', profit: 95000, expenses: 42000 },
-        { day: 'Fri', profit: 68000, expenses: 55000 },
-        { day: 'Sat', profit: 85000, expenses: 48000 },
-        { day: 'Sun', profit: 60000, expenses: 38000 },
-    ];
-
+// Line Chart Component
+const PerformanceChart = ({ data }) => {
     return (
-        <div style={{ width: '100%', height: 280 }}>
+        <div style={{ width: '100%', height: 300 }}>
             <ResponsiveContainer>
                 <ComposedChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 10 }}>
-                    <defs>
-                        <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
-                        </linearGradient>
-                        <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="#f97316" stopOpacity={0.05} />
-                        </linearGradient>
-                    </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis
-                        dataKey="day"
+                        dataKey="date"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#9ca3af', fontSize: 13, fontWeight: 600 }}
+                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
                     />
                     <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 500 }}
-                        tickFormatter={(value) => `${value / 1000}k`}
-                        domain={[20000, 100000]}
+                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                        tickFormatter={(value) => `${(value / 1000).toFixed(1)}k`}
                     />
-                    <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#f97316', strokeWidth: 2, strokeDasharray: '5 5' }} />
-
-                    {/* Area fills */}
-                    <Area
-                        type="monotone"
-                        dataKey="profit"
-                        stroke="none"
-                        fill="url(#profitGradient)"
-                    />
-                    <Area
-                        type="monotone"
-                        dataKey="expenses"
-                        stroke="none"
-                        fill="url(#expenseGradient)"
-                    />
-
-                    {/* Lines */}
+                    <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#cbd5e1', strokeWidth: 1 }} />
                     <Line
                         type="monotone"
-                        dataKey="profit"
-                        stroke="#10b981"
+                        dataKey="sales"
+                        name="Revenue"
+                        stroke="#2563eb"
                         strokeWidth={3}
                         dot={false}
-                        activeDot={{ r: 7, fill: '#10b981', stroke: 'white', strokeWidth: 3 }}
+                        activeDot={{ r: 6, fill: '#2563eb', stroke: 'white', strokeWidth: 2 }}
                     />
                     <Line
                         type="monotone"
                         dataKey="expenses"
-                        stroke="#f97316"
+                        name="Expenses"
+                        stroke="#94a3b8"
                         strokeWidth={3}
                         dot={false}
-                        activeDot={{ r: 7, fill: '#f97316', stroke: 'white', strokeWidth: 3 }}
+                        activeDot={{ r: 6, fill: '#94a3b8', stroke: 'white', strokeWidth: 2 }}
                     />
                 </ComposedChart>
             </ResponsiveContainer>
@@ -166,107 +131,139 @@ const LineChart = () => {
     );
 };
 
-const Dashboard = () => {
+const Dashboard = ({ currentUser }) => {
+    const [summary, setSummary] = useState({ totalSales: 0, totalPurchases: 0, totalExpenses: 0, netProfit: 0, recentDays: [] });
+    const [recentSales, setRecentSales] = useState([]);
+    const [topCustomers, setTopCustomers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState('Weekly');
+
+    useEffect(() => {
+        loadDashboardData();
+    }, [currentUser, filter]);
+
+    const loadDashboardData = async () => {
+        if (!currentUser?.company_id) return;
+        setLoading(true);
+        try {
+            // Fetch multiple data points in parallel
+            const [reportData, salesData, customersData] = await Promise.all([
+                window.electronAPI.getReportSummary({ companyId: currentUser.company_id, period: filter }),
+                window.electronAPI.getSales(currentUser.company_id),
+                window.electronAPI.getCustomers(currentUser.company_id)
+            ]);
+
+            setSummary(reportData || { totalSales: 0, totalPurchases: 0, totalExpenses: 0, netProfit: 0, recentDays: [] });
+            setRecentSales(salesData?.slice(0, 5) || []);
+            setTopCustomers(customersData?.slice(0, 4) || []);
+        } catch (err) {
+            console.error('Error loading dashboard:', err);
+        }
+        setLoading(false);
+    };
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Dashboard</h1>
-                <div className="flex bg-gray-100 rounded-xl p-1.5 shadow-sm">
-                    <button className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg text-sm font-bold shadow-lg shadow-orange-500/30 transition-all hover:shadow-xl">Weekly</button>
-                    <button className="px-6 py-2.5 text-gray-600 text-sm font-medium hover:bg-white rounded-lg transition-all">Monthly</button>
-                    <button className="px-6 py-2.5 text-gray-600 text-sm font-medium hover:bg-white rounded-lg transition-all">Yearly</button>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Organization Overview</h1>
+                    <p className="text-slate-500 text-sm mt-1">Real-time analytical insights for your business.</p>
+                </div>
+                <div className="flex bg-slate-100/50 p-1 rounded-lg border border-slate-200 w-fit">
+                    {['Weekly', 'Monthly', 'Yearly'].map((p) => (
+                        <button
+                            key={p}
+                            onClick={() => setFilter(p)}
+                            className={`px-5 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${filter === p ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            {p}
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            {/* Stats Cards with Vibrant Colors */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
-                    title="Total Profit"
-                    value="PKR 25,127"
-                    change="75%"
+                    title="Total Revenue"
+                    value={`PKR ${summary.totalSales.toLocaleString()}`}
+                    change="Auto"
                     changeType="up"
-                    percentage={75}
-                    gradient="bg-gradient-to-br from-orange-500 to-orange-600"
+                    percentage={summary.totalSales > 0 ? 100 : 0}
+                    color="#2563eb"
                     icon={TrendingUp}
                 />
                 <StatCard
-                    title="Total Projects"
-                    value="520"
-                    change="32%"
+                    title="Gross Purchases"
+                    value={`PKR ${summary.totalPurchases.toLocaleString()}`}
+                    change="Auto"
                     changeType="up"
-                    percentage={60}
-                    gradient="bg-gradient-to-br from-emerald-500 to-emerald-600"
+                    percentage={summary.totalPurchases > 0 ? 100 : 0}
+                    color="#10b981"
                     icon={FolderKanban}
                 />
                 <StatCard
-                    title="Total Expenses"
-                    value="PKR 12,120"
-                    change="60%"
-                    changeType="down"
-                    percentage={45}
-                    gradient="bg-gradient-to-br from-indigo-500 to-indigo-600"
+                    title="Operating OpEx"
+                    value={`PKR ${summary.totalExpenses.toLocaleString()}`}
+                    change="Auto"
+                    changeType="up"
+                    percentage={summary.totalExpenses > 0 ? 100 : 0}
+                    color="#f43f5e"
                     icon={Wallet}
                 />
                 <StatCard
-                    title="New Customer"
-                    value="124"
-                    change="5%"
-                    changeType="up"
-                    percentage={30}
-                    gradient="bg-gradient-to-br from-pink-500 to-pink-600"
+                    title="Net Profit"
+                    value={`PKR ${summary.netProfit.toLocaleString()}`}
+                    change="Auto"
+                    changeType={summary.netProfit >= 0 ? 'up' : 'down'}
+                    percentage={summary.netProfit > 0 ? 100 : 0}
+                    color="#6366f1"
                     icon={UserPlus}
                 />
             </div>
 
             {/* Main Content Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Overview Chart with Enhanced Design */}
-                <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-bold text-gray-900">Overview</h2>
+                {/* Overview Chart */}
+                <div className="lg:col-span-2 bg-white rounded-xl p-8 border border-slate-200 shadow-sm transition-all">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Performance Analytics</h2>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Revenue vs operational costs</p>
+                        </div>
                         <div className="flex items-center space-x-6">
                             <div className="flex items-center space-x-2">
-                                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                                <span className="text-sm font-semibold text-gray-600">Profit</span>
+                                <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Revenue</span>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                                <span className="text-sm font-semibold text-gray-600">Expenses</span>
+                                <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Expenses</span>
                             </div>
-                            <button className="text-gray-400 hover:text-orange-600 transition-colors">
-                                <MoreVertical size={18} />
-                            </button>
                         </div>
                     </div>
-                    <LineChart />
+                    {loading ? (
+                        <div className="h-[300px] flex items-center justify-center text-slate-400 text-xs font-bold uppercase tracking-widest">Generating Chart...</div>
+                    ) : (
+                        <PerformanceChart data={summary.recentDays} />
+                    )}
                 </div>
 
-                {/* Top Customers with Colorful Avatars */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-gray-900">Top Customer</h2>
-                        <button className="text-gray-400 hover:text-orange-600 transition-colors">
-                            <MoreVertical size={18} />
-                        </button>
-                    </div>
-                    <div className="space-y-4">
-                        {[
-                            { name: 'Benny Chagurian', role: 'CEO of Tech Innovations', gradient: 'from-orange-400 to-orange-600', initials: 'BC' },
-                            { name: 'Chynita Hereen', role: 'Marketing Director', gradient: 'from-pink-400 to-pink-600', initials: 'CH' },
-                            { name: 'David Yersh', role: 'Loyal Customer', gradient: 'from-cyan-400 to-cyan-600', initials: 'DY' },
-                            { name: 'Hayder Jahan', role: 'Project Manager', gradient: 'from-purple-400 to-purple-600', initials: 'HJ' },
-                        ].map((customer, i) => (
-                            <div key={i} className="group flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-all cursor-pointer">
-                                <div className="relative">
-                                    <div className={`absolute inset-0 bg-gradient-to-br ${customer.gradient} rounded-full blur-md opacity-40 group-hover:opacity-60 transition-opacity`}></div>
-                                    <div className={`relative w-12 h-12 rounded-full bg-gradient-to-br ${customer.gradient} flex items-center justify-center text-white font-bold text-sm shadow-lg`}>
-                                        {customer.initials}
-                                    </div>
+                {/* Top Customers */}
+                <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm">
+                    <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight mb-8">Active Clients</h2>
+                    <div className="space-y-6">
+                        {topCustomers.length === 0 ? (
+                            <div className="text-center py-10 text-slate-400 text-xs font-bold uppercase tracking-widest">No clients yet</div>
+                        ) : topCustomers.map((customer, i) => (
+                            <div key={i} className="group flex items-center space-x-4 p-3 rounded-lg hover:bg-slate-50 transition-all cursor-pointer border border-transparent hover:border-slate-100">
+                                <div className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs border bg-blue-50 text-blue-600 border-blue-100 uppercase">
+                                    {customer.name?.substring(0, 2)}
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm font-bold text-gray-800">{customer.name}</p>
-                                    <p className="text-xs text-gray-500 font-medium">{customer.role}</p>
+                                    <p className="text-xs font-bold text-slate-800 uppercase tracking-tight">{customer.name}</p>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{customer.phone || 'Strategic Partner'}</p>
                                 </div>
                             </div>
                         ))}
@@ -274,62 +271,48 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Invoice Table with Modern Design */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
-                    <h2 className="text-xl font-bold text-gray-900">Invoice</h2>
-                    <button className="text-gray-400 hover:text-orange-600 transition-colors">
-                        <MoreVertical size={18} />
-                    </button>
+            {/* Sales Table */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                    <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight">Recent Transaction Ledger</h2>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Latest Invoices</p>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-600 font-semibold text-xs uppercase">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-50/80">
                             <tr>
-                                <th className="px-6 py-4">Location</th>
-                                <th className="px-6 py-4">Role</th>
-                                <th className="px-6 py-4">Date</th>
-                                <th className="px-6 py-4">Name</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4">Amount</th>
-                                <th className="px-6 py-4">Actions</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Invoice ID</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Customer</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Post Date</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Audit Status</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 text-right">Debit Amount</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {[
-                                { location: 'Cedar Grove Lane', role: 'Technical Lead', date: 'December 5th, 2025', name: 'David Lane', status: 'Finished', amount: 'PKR 315.00' },
-                                { location: 'Riverbend Plaza', role: 'Sales Manager', date: 'October 22nd, 2025', name: 'Mark Johnson', status: 'Pending', amount: 'PKR 210.00' },
-                                { location: 'Sunnyvale Park', role: 'Customer Support', date: 'September 15th, 2025', name: 'Hassan Ali', status: 'Finished', amount: 'PKR 260.00' },
-                                { location: 'Maplewood Avenue', role: 'Product Owner', date: 'November 30th, 2025', name: 'David Lane', status: 'Cancel', amount: 'PKR 410.00' },
-                            ].map((row, i) => (
-                                <tr key={i} className="hover:bg-orange-50/30 transition-colors group">
-                                    <td className="px-6 py-4 font-bold text-gray-800">{row.location}</td>
-                                    <td className="px-6 py-4 text-gray-600 font-medium">{row.role}</td>
-                                    <td className="px-6 py-4 text-gray-500">{row.date}</td>
-                                    <td className="px-6 py-4 font-semibold text-gray-800">{row.name}</td>
+                        <tbody className="divide-y divide-slate-50">
+                            {loading ? (
+                                <tr><td colSpan="5" className="px-6 py-10 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">Loading transactions...</td></tr>
+                            ) : recentSales.length === 0 ? (
+                                <tr><td colSpan="5" className="px-6 py-10 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">No transactions found</td></tr>
+                            ) : recentSales.map((sale, i) => (
+                                <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
+                                    <td className="px-6 py-4 text-xs font-bold text-slate-800 uppercase tracking-tight">INV-{sale.id.toString().padStart(4, '0')}</td>
+                                    <td className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-tight">{sale.customer?.name || 'Walk-in Customer'}</td>
+                                    <td className="px-6 py-4 text-xs font-bold text-slate-400 tracking-tight">{new Date(sale.createdAt).toLocaleDateString()}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold ${row.status === 'Finished' ? 'bg-emerald-100 text-emerald-700' :
-                                            row.status === 'Pending' ? 'bg-orange-100 text-orange-600' :
-                                                'bg-red-100 text-red-600'
-                                            }`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${row.status === 'Finished' ? 'bg-emerald-500' :
-                                                row.status === 'Pending' ? 'bg-orange-500' : 'bg-red-500'
-                                                }`}></span>
-                                            <span>{row.status}</span>
+                                        <span className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-tight border bg-emerald-50 text-emerald-600 border-emerald-100">
+                                            Completed
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 font-bold text-gray-900">{row.amount}</td>
-                                    <td className="px-6 py-4">
-                                        <button className="text-gray-400 hover:text-orange-600 font-bold transition-colors">•••</button>
-                                    </td>
+                                    <td className="px-6 py-4 text-right text-xs font-black text-slate-800 tracking-tight">PKR {sale.totalAmount.toLocaleString()}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div >
+        </div>
     );
 };
 
 export default Dashboard;
+

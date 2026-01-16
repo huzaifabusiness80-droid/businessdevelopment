@@ -13,6 +13,9 @@ import Reports from './components/Reports';
 import Users from './components/Users';
 import Settings from './components/Settings';
 import Company from './components/Company';
+import Accounting from './components/Accounting';
+import HRM from './components/HRM';
+import Backup from './components/Backup';
 
 function App() {
     const [user, setUser] = useState(null);
@@ -62,6 +65,9 @@ function App() {
                     <Route path="/suppliers" element={<Suppliers currentUser={user} />} />
                     <Route path="/expenses" element={<Expenses currentUser={user} />} />
                     <Route path="/reports" element={<Reports currentUser={user} />} />
+                    <Route path="/accounting" element={<Accounting />} />
+                    <Route path="/hrm" element={<HRM />} />
+                    <Route path="/backup" element={<Backup />} />
                     <Route path="/users" element={<Users />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/company" element={<Company />} />

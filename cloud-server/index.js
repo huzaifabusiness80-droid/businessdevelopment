@@ -847,6 +847,214 @@ app.post('/api/sales', async (req, res) => {
 });
 
 // ==========================================
+// EXPENSES
+// ==========================================
+app.get('/api/expenses', async (req, res) => {
+    try {
+        const { companyId } = req.query;
+        if (!companyId) return res.json([]);
+        const expenses = await prisma.expense.findMany({
+            where: { companyId },
+            orderBy: { date: 'desc' }
+        });
+        res.json(expenses);
+    } catch (e) { handleError(res, e); }
+});
+
+app.post('/api/expenses', async (req, res) => {
+    try {
+        const { companyId, title, amount, category, description, date } = req.body;
+        const expense = await prisma.expense.create({
+            data: {
+                companyId,
+                title,
+                amount: parseFloat(amount),
+                category,
+                description,
+                date: date ? new Date(date) : new Date()
+            }
+        });
+        res.json({ success: true, id: expense.id, ...expense });
+    } catch (e) { handleError(res, e); }
+});
+
+app.put('/api/expenses/:id', async (req, res) => {
+    try {
+        const { title, amount, category, description, date } = req.body;
+        await prisma.expense.update({
+            where: { id: req.params.id },
+            data: {
+                title,
+                amount: amount !== undefined ? parseFloat(amount) : undefined,
+                category,
+                description,
+                date: date ? new Date(date) : undefined
+            }
+        });
+        res.json({ success: true, changes: 1 });
+    } catch (e) { handleError(res, e); }
+});
+
+app.delete('/api/expenses/:id', async (req, res) => {
+    try {
+        await prisma.expense.delete({ where: { id: req.params.id } });
+        res.json({ success: true, changes: 1 });
+    } catch (e) { handleError(res, e); }
+});
+
+// ==========================================
+// HRM (Employees & Attendance)
+// ==========================================
+app.get('/api/employees', async (req, res) => {
+    try {
+        const { companyId } = req.query;
+        if (!companyId) return res.json([]);
+        const employees = await prisma.employee.findMany({
+            where: { companyId },
+            include: { attendances: true },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(employees);
+    } catch (e) { handleError(res, e); }
+});
+
+app.post('/api/employees', async (req, res) => {
+    try {
+        const { companyId, firstName, lastName, phone, designation, salary, joiningDate } = req.body;
+        const employee = await prisma.employee.create({
+            data: {
+                companyId,
+                firstName,
+                lastName,
+                phone,
+                designation,
+                salary: parseFloat(salary) || 0,
+                joiningDate: joiningDate ? new Date(joiningDate) : new Date()
+            }
+        });
+        res.json({ success: true, id: employee.id, ...employee });
+    } catch (e) { handleError(res, e); }
+});
+
+app.put('/api/employees/:id', async (req, res) => {
+    try {
+        const { firstName, lastName, phone, designation, salary, joiningDate } = req.body;
+        await prisma.employee.update({
+            where: { id: req.params.id },
+            data: {
+                firstName,
+                lastName,
+                phone,
+                designation,
+                salary: salary !== undefined ? parseFloat(salary) : undefined,
+                joiningDate: joiningDate ? new Date(joiningDate) : undefined
+            }
+        });
+        res.json({ success: true, changes: 1 });
+    } catch (e) { handleError(res, e); }
+});
+
+app.delete('/api/employees/:id', async (req, res) => {
+    try {
+        await prisma.employee.delete({ where: { id: req.params.id } });
+        res.json({ success: true, changes: 1 });
+    } catch (e) { handleError(res, e); }
+});
+
+// Attendance handles
+app.get('/api/attendance', async (req, res) => {
+    try {
+        const { companyId, date } = req.query;
+        const targetDate = date ? new Date(date) : new Date();
+        const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
+
+        const attendance = await prisma.attendance.findMany({
+            where: {
+                employee: { companyId },
+                date: { gte: startOfDay, lte: endOfDay }
+            },
+            include: { employee: true }
+        });
+        res.json(attendance);
+    } catch (e) { handleError(res, e); }
+});
+
+app.post('/api/attendance', async (req, res) => {
+    try {
+        const { employeeId, status, checkIn, checkOut, date } = req.body;
+
+        // Upsert logic for attendance on a specific day
+        const targetDate = date ? new Date(date) : new Date();
+        const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
+
+        const existing = await prisma.attendance.findFirst({
+            where: {
+                employeeId,
+                date: { gte: startOfDay, lte: endOfDay }
+            }
+        });
+
+        if (existing) {
+            await prisma.attendance.update({
+                where: { id: existing.id },
+                data: { status, checkIn: checkIn ? new Date(checkIn) : undefined, checkOut: checkOut ? new Date(checkOut) : undefined }
+            });
+        } else {
+            await prisma.attendance.create({
+                data: {
+                    employeeId,
+                    status,
+                    date: startOfDay,
+                    checkIn: checkIn ? new Date(checkIn) : undefined,
+                    checkOut: checkOut ? new Date(checkOut) : undefined
+                }
+            });
+        }
+        res.json({ success: true });
+    } catch (e) { handleError(res, e); }
+});
+
+// ==========================================
+// REPORTS & ANALYTICS
+// ==========================================
+app.get('/api/reports/summary', async (req, res) => {
+    try {
+        const { companyId, startDate, endDate } = req.query;
+        const start = startDate ? new Date(startDate) : new Date(new Date().setDate(new Date().getDate() - 30));
+        const end = endDate ? new Date(endDate) : new Date();
+
+        const [sales, purchases, expenses] = await Promise.all([
+            prisma.sale.findMany({
+                where: { companyId, date: { gte: start, lte: end } }
+            }),
+            prisma.purchase.findMany({
+                where: { companyId, date: { gte: start, lte: end } }
+            }),
+            prisma.expense.findMany({
+                where: { companyId, date: { gte: start, lte: end } }
+            })
+        ]);
+
+        const totalSales = sales.reduce((acc, s) => acc + s.grandTotal, 0);
+        const totalPurchases = purchases.reduce((acc, p) => acc + p.totalAmount, 0);
+        const totalExpenses = expenses.reduce((acc, e) => acc + e.amount, 0);
+        const netProfit = totalSales - (totalPurchases + totalExpenses);
+
+        res.json({
+            totalSales,
+            totalPurchases,
+            totalExpenses,
+            netProfit,
+            salesCount: sales.length,
+            purchaseCount: purchases.length,
+            expenseCount: expenses.length
+        });
+    } catch (e) { handleError(res, e); }
+});
+
+// ==========================================
 // AUDIT LOGS
 // ==========================================
 app.get('/api/audit-logs', async (req, res) => {

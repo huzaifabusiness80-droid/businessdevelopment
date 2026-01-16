@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, Package, Truck, ShoppingCart, Users, Building2,
-    Receipt, BarChart3, UserCog, Settings, LogOut, Search, Bell, Mail, ChevronRight
+    Receipt, BarChart3, UserCog, Settings, LogOut, Search, Bell, Mail, ChevronRight,
+    UserSquare, HardDrive
 } from 'lucide-react';
 
 // Define all menu items with their permission keys
@@ -15,24 +16,25 @@ const ALL_MENU_ITEMS = [
     { key: 'suppliers', icon: Building2, label: 'Suppliers', path: '/suppliers' },
     { key: 'expenses', icon: Receipt, label: 'Expenses', path: '/expenses' },
     { key: 'reports', icon: BarChart3, label: 'Reports', path: '/reports' },
+    { key: 'hrm', icon: UserSquare, label: 'HRM', path: '/hrm' },
 ];
 
 const SETTINGS_MENU_ITEMS = [
     { key: 'users', icon: UserCog, label: 'Company & Users', path: '/company' },
+    { key: 'backup', icon: HardDrive, label: 'Backup & Restore', path: '/backup' },
     { key: 'settings', icon: Settings, label: 'Settings', path: '/settings' },
 ];
 
 const SidebarItem = ({ icon: Icon, label, active, onClick, hasSubmenu }) => (
     <div
         onClick={onClick}
-        className={`group relative flex items-center justify-between px-4 py-3.5 rounded-xl cursor-pointer transition-all duration-300 ${active
-            ? 'bg-gradient-to-r from-orange-300 to-orange-600 text-white font-semibold '
-            : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+        className={`group relative flex items-center justify-between px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 ${active
+            ? 'bg-slate-800 text-white font-medium shadow-sm'
+            : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
             }`}
     >
-        {active && <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-orange-600 rounded-xl blur opacity-50"></div>}
         <div className="relative flex items-center space-x-3">
-            <Icon size={20} className={active ? 'text-white' : 'text-gray-400 group-hover:text-orange-400 transition-colors'} />
+            <Icon size={18} className={active ? 'text-blue-400' : 'text-slate-500 group-hover:text-blue-400 transition-colors'} />
             <span className="text-[15px]">{label}</span>
         </div>
         {hasSubmenu && <ChevronRight size={16} className="relative text-gray-500 group-hover:text-orange-400 transition-colors" />}
@@ -96,22 +98,19 @@ const Layout = ({ children, user, onLogout }) => {
         <div className="flex h-screen bg-gray-50">
             {/* Sidebar */}
             <div className="w-72 bg-gradient-to-b from-gray-900 via-black to-gray-900 flex flex-col relative overflow-hidden">
-                {/* Decorative Elements */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-600/10 rounded-full blur-3xl"></div>
+
 
                 {/* Logo */}
-                <div className="relative h-20 flex items-center px-6 border-b border-gray-800">
+                <div className="relative h-20 flex items-center px-6 border-b border-slate-800/50">
                     <div className="flex items-center space-x-3">
                         <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl blur-md opacity-60"></div>
-                            <div className="relative w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-900/20">
                                 <span className="text-white font-bold text-lg">B</span>
                             </div>
                         </div>
                         <div>
-                            <span className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Business</span>
-                            <p className="text-xs text-orange-400 font-medium">Management</p>
+                            <span className="text-lg font-bold tracking-tight text-white">Business</span>
+                            <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest leading-none">Management</p>
                         </div>
                     </div>
                 </div>
@@ -124,7 +123,7 @@ const Layout = ({ children, user, onLogout }) => {
                 )}
 
                 {/* Navigation - Dynamic based on permissions */}
-                <div className="relative flex-1 px-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+                <div className="relative flex-1 px-4 space-y-1.5  overflow-y-auto custom-scrollbar">
                     {visibleMenuItems.map((item) => (
                         <SidebarItem
                             key={item.key}
@@ -138,7 +137,7 @@ const Layout = ({ children, user, onLogout }) => {
 
                 {/* Settings Section - Dynamic based on permissions */}
                 {visibleSettingsItems.length > 0 && (
-                    <div className="relative px-4 py-4 border-t border-gray-800">
+                    <div className="relative px-4 py-2  border-t border-gray-800">
                         <div className="px-2 py-2">
                             <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Settings</span>
                         </div>
@@ -193,23 +192,20 @@ const Layout = ({ children, user, onLogout }) => {
 
                     {/* Right Side */}
                     <div className="flex items-center space-x-3">
-                        <button className="p-3 bg-gray-50 rounded-xl text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition-all duration-300">
+                        <button className="p-2.5 bg-slate-50 rounded-lg text-slate-500 hover:bg-slate-100 transition-all duration-200">
                             <Mail size={20} />
                         </button>
-                        <button className="p-3 bg-gray-50 rounded-xl text-gray-500 hover:bg-orange-50 hover:text-orange-600 transition-all duration-300 relative">
+                        <button className="p-2.5 bg-slate-50 rounded-lg text-slate-500 hover:bg-slate-100 transition-all duration-200 relative">
                             <Bell size={20} />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-blue-500 rounded-full"></span>
                         </button>
-                        <div className="flex items-center space-x-3 pl-4 ml-2 border-l border-gray-200">
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full blur-md opacity-40"></div>
-                                <div className="relative w-11 h-11 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white font-bold shadow-lg">
-                                    {user?.fullname?.charAt(0).toUpperCase() || 'U'}
-                                </div>
+                        <div className="flex items-center space-x-3 pl-4 ml-2 border-l border-slate-200">
+                            <div className="relative w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-100">
+                                {user?.fullname?.charAt(0).toUpperCase() || 'U'}
                             </div>
                             <div>
-                                <p className="text-sm font-bold text-gray-800">{user?.fullname || 'User'}</p>
-                                <p className="text-xs font-medium text-orange-500 capitalize">{user?.role?.replace('_', ' ') || 'User'}</p>
+                                <p className="text-sm font-bold text-slate-800 leading-tight">{user?.fullname || 'User'}</p>
+                                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">{user?.role?.replace('_', ' ') || 'User'}</p>
                             </div>
                         </div>
                     </div>

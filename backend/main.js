@@ -93,6 +93,25 @@ ipcMain.handle("add-sale", (e, data) => apiCall('post', '/sales', data));
 ipcMain.handle("get-purchases", (e, companyId) => apiCall('get', '/purchases', null, { companyId }));
 ipcMain.handle("add-purchase", (e, data) => apiCall('post', '/purchases', data));
 
+// Expenses
+ipcMain.handle("get-expenses", (e, companyId) => apiCall('get', '/expenses', null, { companyId }));
+ipcMain.handle("create-expense", (e, data) => apiCall('post', '/expenses', data));
+ipcMain.handle("update-expense", (e, data) => apiCall('put', `/expenses/${data.id}`, data));
+ipcMain.handle("delete-expense", (e, id) => apiCall('delete', `/expenses/${id}`));
+
+// HRM - Employees
+ipcMain.handle("get-employees", (e, companyId) => apiCall('get', '/employees', null, { companyId }));
+ipcMain.handle("create-employee", (e, data) => apiCall('post', '/employees', data));
+ipcMain.handle("update-employee", (e, data) => apiCall('put', `/employees/${data.id}`, data));
+ipcMain.handle("delete-employee", (e, id) => apiCall('delete', `/employees/${id}`));
+
+// HRM - Attendance
+ipcMain.handle("get-attendance", (e, params) => apiCall('get', '/attendance', null, params));
+ipcMain.handle("save-attendance", (e, data) => apiCall('post', '/attendance', data));
+
+// Reports
+ipcMain.handle("get-report-summary", (e, params) => apiCall('get', '/reports/summary', null, params));
+
 // Audit Logs
 ipcMain.handle("get-audit-logs", (e, params) => apiCall('get', '/audit-logs', null, params));
 ipcMain.handle("create-audit-log", (e, data) => apiCall('post', '/audit-logs', data));

@@ -9,7 +9,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f9fafb; /* Light gray background */
+  background-color: #f8fafc;
 }
 
 code {
@@ -28,19 +28,29 @@ code {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(249, 115, 22, 0.3);
+  background: rgba(100, 116, 139, 0.2);
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(249, 115, 22, 0.6);
+  background: rgba(100, 116, 139, 0.4);
 }
 
 /* Shake Animation for Errors */
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 .animate-shake {
