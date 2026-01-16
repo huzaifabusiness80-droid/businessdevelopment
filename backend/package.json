@@ -10,7 +10,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "electron": "electron .",
-    "build": "react-scripts build",
+    "build": "node scripts/build.js",
+    "copy-build": "node scripts/copy-build.js",
     "dist": "electron-builder --win --x64"
   },
 
