@@ -110,7 +110,7 @@ const EmployeeList = ({ employees, onRefresh, currentUser, loading }) => {
         }
     };
 
-    const filtered = employees.filter(e =>
+    const filtered = (employees || []).filter(e =>
         `${e.firstName} ${e.lastName || ''}`.toLowerCase().includes(search.toLowerCase()) ||
         e.designation?.toLowerCase().includes(search.toLowerCase())
     );
@@ -162,11 +162,11 @@ const EmployeeList = ({ employees, onRefresh, currentUser, loading }) => {
                                     </div>
                                 </td>
                             </tr>
-                        ) : filtered.length === 0 ? (
+                        ) : (filtered?.length ?? 0) === 0 ? (
                             <tr>
                                 <td colSpan="6" className="px-6 py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No employees found</td>
                             </tr>
-                        ) : filtered.map((emp) => (
+                        ) : filtered?.map((emp) => (
                             <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors group">
                                 <td className="px-6 py-4 font-bold text-slate-800 text-xs">
                                     {emp.firstName} {emp.lastName}
@@ -175,8 +175,8 @@ const EmployeeList = ({ employees, onRefresh, currentUser, loading }) => {
                                     <span className="px-2.5 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase tracking-tight border border-blue-100">{emp.designation}</span>
                                 </td>
                                 <td className="px-6 py-4 text-slate-500 font-medium text-xs">{emp.phone}</td>
-                                <td className="px-6 py-4 font-bold text-slate-800 text-xs">PKR {emp.salary.toLocaleString()}</td>
-                                <td className="px-6 py-4 text-slate-400 font-bold text-[10px] uppercase">{new Date(emp.joiningDate).toLocaleDateString()}</td>
+                                <td className="px-6 py-4 font-bold text-slate-800 text-xs">PKR {emp.salary?.toLocaleString() ?? '0'}</td>
+                                <td className="px-6 py-4 text-slate-400 font-bold text-[10px] uppercase">{emp.joiningDate ? new Date(emp.joiningDate).toLocaleDateString() : 'N/A'}</td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex items-center justify-end space-x-1">
                                         <button onClick={() => { setFormData(emp); setShowModal(true); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
@@ -257,8 +257,8 @@ const Attendance = ({ employees, currentUser }) => {
             const existing = await window.electronAPI.getAttendance({ companyId: currentUser.company_id, date });
 
             // Map employees with their existing attendance status
-            const rows = employees.map(emp => {
-                const att = existing.find(a => a.employeeId === emp.id);
+            const rows = (employees || []).map(emp => {
+                const att = (existing || []).find(a => a.employeeId === emp.id);
                 return {
                     employeeId: emp.id,
                     name: `${emp.firstName} ${emp.lastName || ''}`,
@@ -297,10 +297,10 @@ const Attendance = ({ employees, currentUser }) => {
     };
 
     const stats = {
-        present: attendanceRows.filter(r => r.status === 'Present').length,
-        absent: attendanceRows.filter(r => r.status === 'Absent').length,
-        late: attendanceRows.filter(r => r.status === 'Late').length,
-        leave: attendanceRows.filter(r => r.status === 'Leave').length,
+        present: (attendanceRows || []).filter(r => r.status === 'Present').length,
+        absent: (attendanceRows || []).filter(r => r.status === 'Absent').length,
+        late: (attendanceRows || []).filter(r => r.status === 'Late').length,
+        leave: (attendanceRows || []).filter(r => r.status === 'Leave').length,
     };
 
     return (
@@ -349,11 +349,11 @@ const Attendance = ({ employees, currentUser }) => {
                             <tr>
                                 <td colSpan="5" className="px-6 py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">Loading records...</td>
                             </tr>
-                        ) : attendanceRows.length === 0 ? (
+                        ) : (attendanceRows?.length ?? 0) === 0 ? (
                             <tr>
                                 <td colSpan="5" className="px-6 py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No employees available</td>
                             </tr>
-                        ) : attendanceRows.map((att) => (
+                        ) : attendanceRows?.map((att) => (
                             <tr key={att.employeeId} className="hover:bg-slate-50/50 transition-colors">
                                 <td className="px-6 py-4 font-bold text-slate-800 text-xs uppercase tracking-tight">{att.name}</td>
                                 <td className="px-6 py-4 font-bold text-slate-600 text-xs">{att.checkIn}</td>
@@ -421,12 +421,12 @@ const Payroll = ({ employees }) => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                        {employees.map((emp) => (
+                        {(employees || []).map((emp) => (
                             <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
                                 <td className="px-6 py-4 font-bold text-slate-800 text-xs uppercase tracking-tight">{emp.firstName} {emp.lastName}</td>
-                                <td className="px-6 py-4 font-bold text-slate-600 text-xs">PKR {emp.salary.toLocaleString()}</td>
+                                <td className="px-6 py-4 font-bold text-slate-600 text-xs">PKR {emp.salary?.toLocaleString() ?? '0'}</td>
                                 <td className="px-6 py-4 text-rose-600 font-bold text-xs">-PKR 0</td>
-                                <td className="px-6 py-4 font-bold text-blue-600 text-xs">PKR {emp.salary.toLocaleString()}</td>
+                                <td className="px-6 py-4 font-bold text-blue-600 text-xs">PKR {emp.salary?.toLocaleString() ?? '0'}</td>
                                 <td className="px-6 py-4 text-right">
                                     <button className="text-blue-600 text-[10px] font-bold uppercase tracking-widest hover:underline decoration-2 underline-offset-4">View Slip</button>
                                 </td>

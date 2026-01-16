@@ -47,19 +47,19 @@ const Reports = ({ currentUser }) => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="bg-white rounded-xl p-5 border-l-4 border-l-blue-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Sales</p>
-                    <p className="text-xl font-bold text-slate-800">PKR {summary.totalSales.toLocaleString()}</p>
+                    <p className="text-xl font-bold text-slate-800">PKR {summary.totalSales?.toLocaleString() ?? '0'}</p>
                 </div>
                 <div className="bg-white rounded-xl p-5 border-l-4 border-l-amber-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Purchases</p>
-                    <p className="text-xl font-bold text-slate-800">PKR {summary.totalPurchases.toLocaleString()}</p>
+                    <p className="text-xl font-bold text-slate-800">PKR {summary.totalPurchases?.toLocaleString() ?? '0'}</p>
                 </div>
                 <div className="bg-white rounded-xl p-5 border-l-4 border-l-rose-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Expenses</p>
-                    <p className="text-xl font-bold text-slate-800">PKR {summary.totalExpenses.toLocaleString()}</p>
+                    <p className="text-xl font-bold text-slate-800">PKR {summary.totalExpenses?.toLocaleString() ?? '0'}</p>
                 </div>
                 <div className="bg-white rounded-xl p-5 border-l-4 border-l-emerald-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Net Profit</p>
-                    <p className={`text-xl font-bold ${summary.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>PKR {summary.netProfit.toLocaleString()}</p>
+                    <p className={`text-xl font-bold ${summary.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>PKR {summary.netProfit?.toLocaleString() ?? '0'}</p>
                 </div>
             </div>
 
@@ -113,19 +113,19 @@ const Reports = ({ currentUser }) => {
                                 <tr>
                                     <td colSpan="5" className="px-6 py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">Generating reports...</td>
                                 </tr>
-                            ) : summary.recentDays.length === 0 ? (
+                            ) : (summary.recentDays?.length ?? 0) === 0 ? (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No data available for this period</td>
                                 </tr>
-                            ) : summary.recentDays.map((row, i) => (
+                            ) : summary.recentDays?.map((row, i) => (
                                 <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
                                     <td className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-tight">{row.date}</td>
                                     <td className="px-6 py-4 text-center text-xs font-bold text-slate-800">{row.invoices}</td>
-                                    <td className="px-6 py-4 text-xs font-bold text-blue-600 tracking-tight">PKR {row.sales.toLocaleString()}</td>
-                                    <td className="px-6 py-4 text-xs font-bold text-rose-500 tracking-tight">PKR {row.expenses.toLocaleString()}</td>
+                                    <td className="px-6 py-4 text-xs font-bold text-blue-600 tracking-tight">PKR {row.sales?.toLocaleString() ?? '0'}</td>
+                                    <td className="px-6 py-4 text-xs font-bold text-rose-500 tracking-tight">PKR {row.expenses?.toLocaleString() ?? '0'}</td>
                                     <td className="px-6 py-4">
                                         <span className={`text-xs font-bold tracking-tight ${row.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                            PKR {row.profit.toLocaleString()}
+                                            PKR {row.profit?.toLocaleString() ?? '0'}
                                         </span>
                                     </td>
                                 </tr>

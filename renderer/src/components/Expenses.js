@@ -77,18 +77,20 @@ const Expenses = ({ currentUser }) => {
     );
 
     const stats = {
-        today: expenses.filter(e => new Date(e.date).toDateString() === new Date().toDateString()).reduce((acc, e) => acc + e.amount, 0),
-        weekly: expenses.filter(e => {
+        today: (expenses || []).filter(e => e.date && new Date(e.date).toDateString() === new Date().toDateString()).reduce((acc, e) => acc + (Number(e.amount) || 0), 0),
+        weekly: (expenses || []).filter(e => {
+            if (!e.date) return false;
             const d = new Date(e.date);
             const now = new Date();
             const weekAgo = new Date(now.setDate(now.getDate() - 7));
             return d >= weekAgo;
-        }).reduce((acc, e) => acc + e.amount, 0),
-        monthly: expenses.filter(e => {
+        }).reduce((acc, e) => acc + (Number(e.amount) || 0), 0),
+        monthly: (expenses || []).filter(e => {
+            if (!e.date) return false;
             const d = new Date(e.date);
             const now = new Date();
             return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-        }).reduce((acc, e) => acc + e.amount, 0)
+        }).reduce((acc, e) => acc + (Number(e.amount) || 0), 0)
     };
 
     return (
@@ -115,15 +117,15 @@ const Expenses = ({ currentUser }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white rounded-xl p-5 border-l-4 border-l-rose-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Today's Spends</p>
-                    <p className="text-xl font-bold text-slate-800">PKR {stats.today.toLocaleString()}</p>
+                    <p className="text-xl font-bold text-slate-800">PKR {stats.today?.toLocaleString() ?? '0'}</p>
                 </div>
                 <div className="bg-white rounded-xl p-5 border-l-4 border-l-amber-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Weekly Total</p>
-                    <p className="text-xl font-bold text-slate-800">PKR {stats.weekly.toLocaleString()}</p>
+                    <p className="text-xl font-bold text-slate-800">PKR {stats.weekly?.toLocaleString() ?? '0'}</p>
                 </div>
                 <div className="bg-white rounded-xl p-5 border-l-4 border-l-blue-500 border border-slate-200 shadow-sm transition-all hover:shadow-md">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Monthly Total</p>
-                    <p className="text-xl font-bold text-slate-800">PKR {stats.monthly.toLocaleString()}</p>
+                    <p className="text-xl font-bold text-slate-800">PKR {stats.monthly?.toLocaleString() ?? '0'}</p>
                 </div>
             </div>
 
@@ -163,16 +165,16 @@ const Expenses = ({ currentUser }) => {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : filteredExpenses.length === 0 ? (
+                            ) : (filteredExpenses?.length ?? 0) === 0 ? (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-20 text-center text-slate-400 font-bold text-sm uppercase tracking-widest">
                                         No expenses found
                                     </td>
                                 </tr>
-                            ) : filteredExpenses.map((expense) => (
+                            ) : filteredExpenses?.map((expense) => (
                                 <tr key={expense.id} className="hover:bg-slate-50/50 transition-colors group">
                                     <td className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-tight">
-                                        {new Date(expense.date).toLocaleDateString()}
+                                        {expense.date ? new Date(expense.date).toLocaleDateString() : 'N/A'}
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className="px-2.5 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold uppercase tracking-tight border border-blue-100">
@@ -182,7 +184,7 @@ const Expenses = ({ currentUser }) => {
                                     <td className="px-6 py-4 text-xs font-bold text-slate-800 uppercase tracking-tight">{expense.title}</td>
                                     <td className="px-6 py-4">
                                         <span className="text-xs font-bold text-rose-600 tracking-tight">
-                                            PKR {expense.amount.toLocaleString()}
+                                            PKR {expense.amount?.toLocaleString() ?? '0'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">

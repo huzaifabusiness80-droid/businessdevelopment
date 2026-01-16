@@ -65,12 +65,12 @@ function App() {
                     <Route path="/suppliers" element={<Suppliers currentUser={user} />} />
                     <Route path="/expenses" element={<Expenses currentUser={user} />} />
                     <Route path="/reports" element={<Reports currentUser={user} />} />
-                    <Route path="/accounting" element={<Accounting />} />
-                    <Route path="/hrm" element={<HRM />} />
-                    <Route path="/backup" element={<Backup />} />
-                    <Route path="/users" element={<Users />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="/company" element={<Company />} />
+                    <Route path="/accounting" element={<Accounting currentUser={user} />} />
+                    <Route path="/hrm" element={<HRM currentUser={user} />} />
+                    <Route path="/backup" element={<Backup currentUser={user} />} />
+                    <Route path="/users" element={<Users currentUser={user} />} />
+                    <Route path="/settings" element={<Settings currentUser={user} />} />
+                    <Route path="/company" element={<Company currentUser={user} />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </Layout>

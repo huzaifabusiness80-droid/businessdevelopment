@@ -71,14 +71,14 @@ const CustomTooltip = ({ active, payload, label }) => {
                             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                             <span className="text-xs font-bold text-slate-300">Revenue</span>
                         </div>
-                        <span className="text-xs font-black">PKR {payload[0]?.value?.toLocaleString()}</span>
+                        <span className="text-xs font-black">PKR {payload[0]?.value?.toLocaleString() ?? '0'}</span>
                     </div>
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center space-x-2">
                             <div className="w-2 h-2 rounded-full bg-slate-400"></div>
                             <span className="text-xs font-bold text-slate-300">Expenses</span>
                         </div>
-                        <span className="text-xs font-black">PKR {payload[1]?.value?.toLocaleString()}</span>
+                        <span className="text-xs font-black">PKR {payload[1]?.value?.toLocaleString() ?? '0'}</span>
                     </div>
                 </div>
             </div>
@@ -187,7 +187,7 @@ const Dashboard = ({ currentUser }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                     title="Total Revenue"
-                    value={`PKR ${summary.totalSales.toLocaleString()}`}
+                    value={`PKR ${summary.totalSales?.toLocaleString() ?? '0'}`}
                     change="Auto"
                     changeType="up"
                     percentage={summary.totalSales > 0 ? 100 : 0}
@@ -196,7 +196,7 @@ const Dashboard = ({ currentUser }) => {
                 />
                 <StatCard
                     title="Gross Purchases"
-                    value={`PKR ${summary.totalPurchases.toLocaleString()}`}
+                    value={`PKR ${summary.totalPurchases?.toLocaleString() ?? '0'}`}
                     change="Auto"
                     changeType="up"
                     percentage={summary.totalPurchases > 0 ? 100 : 0}
@@ -205,7 +205,7 @@ const Dashboard = ({ currentUser }) => {
                 />
                 <StatCard
                     title="Operating OpEx"
-                    value={`PKR ${summary.totalExpenses.toLocaleString()}`}
+                    value={`PKR ${summary.totalExpenses?.toLocaleString() ?? '0'}`}
                     change="Auto"
                     changeType="up"
                     percentage={summary.totalExpenses > 0 ? 100 : 0}
@@ -214,7 +214,7 @@ const Dashboard = ({ currentUser }) => {
                 />
                 <StatCard
                     title="Net Profit"
-                    value={`PKR ${summary.netProfit.toLocaleString()}`}
+                    value={`PKR ${summary.netProfit?.toLocaleString() ?? '0'}`}
                     change="Auto"
                     changeType={summary.netProfit >= 0 ? 'up' : 'down'}
                     percentage={summary.netProfit > 0 ? 100 : 0}
@@ -254,9 +254,9 @@ const Dashboard = ({ currentUser }) => {
                 <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm">
                     <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight mb-8">Active Clients</h2>
                     <div className="space-y-6">
-                        {topCustomers.length === 0 ? (
+                        {(topCustomers?.length ?? 0) === 0 ? (
                             <div className="text-center py-10 text-slate-400 text-xs font-bold uppercase tracking-widest">No clients yet</div>
-                        ) : topCustomers.map((customer, i) => (
+                        ) : topCustomers?.map((customer, i) => (
                             <div key={i} className="group flex items-center space-x-4 p-3 rounded-lg hover:bg-slate-50 transition-all cursor-pointer border border-transparent hover:border-slate-100">
                                 <div className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs border bg-blue-50 text-blue-600 border-blue-100 uppercase">
                                     {customer.name?.substring(0, 2)}
@@ -291,19 +291,19 @@ const Dashboard = ({ currentUser }) => {
                         <tbody className="divide-y divide-slate-50">
                             {loading ? (
                                 <tr><td colSpan="5" className="px-6 py-10 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">Loading transactions...</td></tr>
-                            ) : recentSales.length === 0 ? (
+                            ) : (recentSales?.length ?? 0) === 0 ? (
                                 <tr><td colSpan="5" className="px-6 py-10 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">No transactions found</td></tr>
-                            ) : recentSales.map((sale, i) => (
+                            ) : recentSales?.map((sale, i) => (
                                 <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="px-6 py-4 text-xs font-bold text-slate-800 uppercase tracking-tight">INV-{sale.id.toString().padStart(4, '0')}</td>
+                                    <td className="px-6 py-4 text-xs font-bold text-slate-800 uppercase tracking-tight">INV-{sale.id?.toString().padStart(4, '0') || '0000'}</td>
                                     <td className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-tight">{sale.customer?.name || 'Walk-in Customer'}</td>
-                                    <td className="px-6 py-4 text-xs font-bold text-slate-400 tracking-tight">{new Date(sale.createdAt).toLocaleDateString()}</td>
+                                    <td className="px-6 py-4 text-xs font-bold text-slate-400 tracking-tight">{sale.createdAt ? new Date(sale.createdAt).toLocaleDateString() : 'N/A'}</td>
                                     <td className="px-6 py-4">
                                         <span className="px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-tight border bg-emerald-50 text-emerald-600 border-emerald-100">
                                             Completed
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-right text-xs font-black text-slate-800 tracking-tight">PKR {sale.totalAmount.toLocaleString()}</td>
+                                    <td className="px-6 py-4 text-right text-xs font-black text-slate-800 tracking-tight">PKR {sale.totalAmount?.toLocaleString() ?? '0'}</td>
                                 </tr>
                             ))}
                         </tbody>
