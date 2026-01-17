@@ -154,6 +154,23 @@ const CompanyProfile = ({ currentUser, isSuperAdmin }) => {
         setLoadingUsers(false);
     };
 
+    const handleDeleteCompany = async (e, id) => {
+        e.stopPropagation();
+        if (!window.confirm('Are you sure you want to PERMANENTLY delete this company and all its data?')) return;
+        try {
+            if (window.electronAPI) {
+                const result = await window.electronAPI.deleteCompany(id);
+                if (result?.success === false) {
+                    window.alert(result.message);
+                } else {
+                    loadData();
+                }
+            }
+        } catch (err) {
+            window.alert('Error: ' + err.message);
+        }
+    };
+
     if (loading) return <LoadingSpinner />;
 
     if (isSuperAdmin) {
@@ -169,16 +186,26 @@ const CompanyProfile = ({ currentUser, isSuperAdmin }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {companies.map((c) => (
-                        <div key={c.id} className="group relative bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+                        <div
+                            key={c.id}
+                            onClick={() => openDetailModal(c)}
+                            className="group relative bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+                        >
                             <div className="flex items-start justify-between mb-6">
                                 <div className="w-16 h-16 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-blue-600 font-bold text-2xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                                     {c.name?.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="flex gap-1 shadow-sm border border-slate-100 rounded-lg bg-white overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onClick={() => openDetailModal(c)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
-                                        <Info size={16} />
+                                    <button
+                                        onClick={(e) => handleDeleteCompany(e, c.id)}
+                                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                                    >
+                                        <Trash2 size={16} />
                                     </button>
-                                    <button onClick={() => openModal(c)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border-l border-slate-100">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); openModal(c); }}
+                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all border-l border-slate-100"
+                                    >
                                         <Edit2 size={16} />
                                     </button>
                                 </div>
