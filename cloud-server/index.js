@@ -144,6 +144,17 @@ app.put('/api/companies/:id', async (req, res) => {
     } catch (e) { handleError(res, e); }
 });
 
+app.delete('/api/companies/:id', async (req, res) => {
+    try {
+        await prisma.company.delete({ where: { id: req.params.id } });
+        res.json({ success: true, changes: 1 });
+    } catch (e) {
+        if (e.code === 'P2003') return res.status(400).json({ success: false, message: "Company has active records (users, products, etc) and cannot be deleted" });
+        handleError(res, e);
+    }
+});
+
+
 // ==========================================
 // USERS
 // ==========================================
